@@ -112,7 +112,7 @@ describe('Formatter', () => {
     expect(md).toContain('**+50 pts (EXTREME)**');
     // wait I'll just check if the string is generated.
     expect(md).toContain('1. "Will something happen that is a very very very long question that gets truncated?"');
-    expect(md).toContain('| Will something happen that is a ... | 80% YES | 10% YES | 📊 -20 | $50.0K |');
+    expect(md).toContain('| Will something happen that is a ... |  80% YES |  10% YES | 📊 -20 | $50.0K |');
     expect(md).toContain('## 🏦 Smart Money Leaderboard');
     expect(md).toContain('| 1 | 0x123 | Fund, Smart Trader | 5 | $2.5M |');
   });

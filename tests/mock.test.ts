@@ -20,7 +20,7 @@ describe('getMockData', () => {
 
     expect(markets[0]).toHaveProperty('market_id');
     expect(markets[0]).toHaveProperty('question');
-    expect(markets[0]).toHaveProperty('yes_price');
+    expect(markets[0]).toHaveProperty('last_trade_price');
   });
 
   it('returns top holders with SM and regular wallets', () => {
@@ -31,8 +31,8 @@ describe('getMockData', () => {
     const holders = data as Array<Record<string, unknown>>;
     expect(holders.length).toBeGreaterThan(0);
     expect(holders[0]).toHaveProperty('address');
-    expect(holders[0]).toHaveProperty('position');
-    expect(holders[0]).toHaveProperty('value_usd');
+    expect(holders[0]).toHaveProperty('side');
+    expect(holders[0]).toHaveProperty('position_size');
 
     // Test different yesPrice branches in generateTopHolders
     getMockData('research prediction-market top-holders', ['--market-id', 'pm_btc_200k_june']); // low yes price < 0.4
