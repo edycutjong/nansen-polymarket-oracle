@@ -6,5 +6,17 @@ export default defineConfig({
     globals: false,
     environment: 'node',
     testTimeout: 10_000,
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.ts'],
+      exclude: ['src/types/**', 'src/index.ts'],
+      all: true,
+      thresholds: {
+        statements: 100,
+        branches: 100,
+        functions: 100,
+        lines: 100,
+      }
+    },
   },
 });

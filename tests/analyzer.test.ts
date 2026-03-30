@@ -6,6 +6,7 @@ import { describe, it, expect } from 'vitest';
 import {
   calculateDivergence,
   classifyDivergence,
+  divergenceEmoji,
   analyzeMarket,
   sortByDivergence,
   filterAlerts,
@@ -47,6 +48,14 @@ function makeMarket(overrides?: Partial<PredictionMarket>): PredictionMarket {
 describe('calculateDivergence', () => {
   it('returns 0 when no SM holders', () => {
     expect(calculateDivergence(0.5, [])).toBe(0);
+  });
+
+  it('returns 0 when total SM capital is 0', () => {
+    const holders = [
+      makeHolder({ position: 'YES', value_usd: 0 }),
+      makeHolder({ position: 'NO', value_usd: 0 }),
+    ];
+    expect(calculateDivergence(0.5, holders)).toBe(0);
   });
 
   it('returns positive when SM is more bullish than market', () => {
@@ -117,6 +126,16 @@ describe('classifyDivergence', () => {
     expect(classifyDivergence(3)).toBe('ALIGNED');
     expect(classifyDivergence(0)).toBe('ALIGNED');
     expect(classifyDivergence(-2)).toBe('ALIGNED');
+  });
+});
+
+describe('divergenceEmoji', () => {
+  it('returns the correct emoji for each level', () => {
+    expect(divergenceEmoji('EXTREME')).toBe('🔥');
+    expect(divergenceEmoji('HIGH')).toBe('⚠️');
+    expect(divergenceEmoji('MODERATE')).toBe('📊');
+    expect(divergenceEmoji('LOW')).toBe('✅');
+    expect(divergenceEmoji('ALIGNED')).toBe('🤝');
   });
 });
 
