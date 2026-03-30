@@ -72,10 +72,10 @@ describe('Analyze Command', () => {
       data: [{ address: '0x1', amount: 100 }]
     });
     vi.mocked(enricher.enrichHolders).mockResolvedValue([
-      { address: '0x1', amount: 100, sm_labels: ['Smart DEX Trader'] }
+      { address: '0x1', amount: 100, sm_labels: ['Smart DEX Trader'] } as any
     ]);
     vi.mocked(enricher.filterSmartMoney).mockReturnValue([
-      { address: '0x1', amount: 100, sm_labels: ['Smart DEX Trader'] }
+      { address: '0x1', amount: 100, sm_labels: ['Smart DEX Trader'] } as any
     ]);
     
     vi.mocked(nansen.fetchTradesByMarket).mockResolvedValue({

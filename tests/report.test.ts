@@ -39,7 +39,7 @@ describe('Report Command', () => {
       market: { market_id: 'm1' } as any,
       sm_holders: [],
       divergence_score: 1.5,
-    }
+    } as any
   ];
 
   it('exits early if scanCommand returns empty', async () => {
