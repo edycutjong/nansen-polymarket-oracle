@@ -159,6 +159,7 @@ NANSEN_RECORD=true nansen-oracle scan --limit 5
 | `analyze <id>` | Deep analysis of a specific market: holders, trades, PnL |
 | `report` | Full alpha report exported as Markdown or JSON |
 | `watch <id>` | Live monitoring with Smart Money position change alerts |
+| `address <addr>` | Wallet-level SM lookup: labels, PnL, recent trades |
 
 <details>
 <summary><strong>CLI Options</strong></summary>
@@ -196,13 +197,15 @@ src/
 │   ├── scan.ts           # Market discovery + enrichment
 │   ├── analyze.ts        # Single market deep-dive
 │   ├── report.ts         # Full report generation
-│   └── watch.ts          # Real-time monitoring
+│   ├── watch.ts          # Real-time monitoring
+│   └── address.ts        # Wallet-level SM lookup
 ├── lib/
 │   ├── nansen.ts         # CLI wrapper (exec → JSON)
 │   ├── enricher.ts       # SM label cross-referencing
 │   ├── analyzer.ts       # Divergence score algorithm
 │   ├── cache.ts          # TTL cache for label lookups
 │   ├── formatter.ts      # Terminal + Markdown output
+│   ├── known-wallets.ts  # Known SM wallet registry
 │   ├── mock.ts           # Mock data generator
 │   └── replay.ts         # API response replay engine
 └── types/
