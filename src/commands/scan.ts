@@ -42,7 +42,7 @@ export async function scanCommand(options: ScanOptions): Promise<MarketAnalysis[
     return [];
   }
 
-  let markets: PredictionMarket[] = (marketsResult.data || []) as PredictionMarket[];
+  let markets: PredictionMarket[] = marketsResult.data as PredictionMarket[];
 
   // Filter by minimum volume
   if (minVolume > 0) {

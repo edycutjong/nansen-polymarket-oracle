@@ -18,9 +18,10 @@ const colors: Record<DivergenceLevel, (text: string) => string> = {
   ALIGNED: chalk.gray,
 };
 
-function colorScore(score: number, level: DivergenceLevel): string {
+function colorScore(score: number, level: DivergenceLevel, width: number = 0): string {
   const prefix = score > 0 ? '+' : '';
-  return colors[level](`${prefix}${score}`);
+  const text = width > 0 ? padEnd(`${prefix}${score}`, width) : `${prefix}${score}`;
+  return colors[level](text);
 }
 
 function emoji(level: DivergenceLevel): string {
@@ -30,11 +31,11 @@ function emoji(level: DivergenceLevel): string {
   return map[level];
 }
 
-function pct(value: number): string {
+export function formatPercent(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
 
-function usd(value: number): string {
+export function formatCurrency(value: number): string {
   if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
   return `$${value.toFixed(0)}`;
@@ -76,10 +77,10 @@ export function printScanTable(analyses: MarketAnalysis[]): void {
 
     console.log(
       padEnd(question, 40) +
-      padEnd(pct(a.market.yes_price) + ' YES', 8) +
-      padEnd(pct(a.sm_yes_ratio) + ' YES', 10) +
-      padEnd(colorScore(a.divergence_score, a.divergence_level), 20) + // extra for ANSI
-      padEnd(usd(a.sm_total_capital_usd), 10) +
+      padEnd(formatPercent(a.market.yes_price) + ' YES', 8) +
+      padEnd(formatPercent(a.sm_yes_ratio) + ' YES', 10) +
+      colorScore(a.divergence_score, a.divergence_level, 10) +
+      padEnd(formatCurrency(a.sm_total_capital_usd), 10) +
       padEnd(String(a.sm_holder_count), 6) +
       `${emoji(a.divergence_level)} ${a.divergence_level}`
     );
@@ -99,11 +100,11 @@ export function printMarketDetail(analysis: MarketAnalysis): void {
   console.log(chalk.gray('─'.repeat(70)));
 
   const rows: [string, string][] = [
-    ['Market Odds', `${pct(a.market.yes_price)} YES`],
-    ['SM Position', `${pct(a.sm_yes_ratio)} YES (${a.sm_holder_count} of ${a.total_holders_scanned} holders)`],
+    ['Market Odds', `${formatPercent(a.market.yes_price)} YES`],
+    ['SM Position', `${formatPercent(a.sm_yes_ratio)} YES (${a.sm_holder_count} of ${a.total_holders_scanned} holders)`],
     ['Divergence Score', `${colorScore(a.divergence_score, a.divergence_level)} ${emoji(a.divergence_level)} ${a.divergence_level}`],
-    ['SM Capital Deployed', usd(a.sm_total_capital_usd)],
-    ['Volume', usd(a.market.volume_usd)],
+    ['SM Capital Deployed', formatCurrency(a.sm_total_capital_usd)],
+    ['Volume', formatCurrency(a.market.volume_usd)],
     ['Category', a.market.category || 'N/A'],
   ];
 
@@ -121,7 +122,7 @@ export function printMarketDetail(analysis: MarketAnalysis): void {
         `  ${padEnd(truncAddr(h.address), 16)}` +
         `${padEnd(h.label_summary.slice(0, 20), 22)}` +
         `${padEnd(h.position, 6)}` +
-        `${usd(h.value_usd)}`
+        `${formatCurrency(h.value_usd)}`
       );
     }
     if (a.sm_holders.length > 10) {
@@ -159,11 +160,11 @@ export function generateMarkdownReport(report: OracleReport): string {
       lines.push('');
       lines.push('| Metric | Value |');
       lines.push('|--------|-------|');
-      lines.push(`| Market Odds | ${pct(a.market.yes_price)} YES |`);
-      lines.push(`| SM Position | ${pct(a.sm_yes_ratio)} YES (${a.sm_holder_count} SM wallets) |`);
+      lines.push(`| Market Odds | ${formatPercent(a.market.yes_price)} YES |`);
+      lines.push(`| SM Position | ${formatPercent(a.sm_yes_ratio)} YES (${a.sm_holder_count} SM wallets) |`);
       lines.push(`| **Divergence Score** | **${a.divergence_score > 0 ? '+' : ''}${a.divergence_score} pts (${a.divergence_level})** |`);
-      lines.push(`| SM Capital Deployed | ${usd(a.sm_total_capital_usd)} |`);
-      lines.push(`| Volume | ${usd(a.market.volume_usd)} |`);
+      lines.push(`| SM Capital Deployed | ${formatCurrency(a.sm_total_capital_usd)} |`);
+      lines.push(`| Volume | ${formatCurrency(a.market.volume_usd)} |`);
 
       if (a.sm_holders.length > 0) {
         const topHolder = a.sm_holders[0];
@@ -193,7 +194,7 @@ export function generateMarkdownReport(report: OracleReport): string {
       ? a.market.question.slice(0, 32) + '...'
       : a.market.question;
     lines.push(
-      `| ${question} | ${pct(a.market.yes_price)} YES | ${pct(a.sm_yes_ratio)} YES | ${emojiStr} ${scoreStr} | ${usd(a.market.volume_usd)} |`
+      `| ${question} | ${formatPercent(a.market.yes_price)} YES | ${formatPercent(a.sm_yes_ratio)} YES | ${emojiStr} ${scoreStr} | ${formatCurrency(a.market.volume_usd)} |`
     );
   }
   lines.push('');
@@ -207,7 +208,7 @@ export function generateMarkdownReport(report: OracleReport): string {
 
     for (const [i, entry] of report.sm_leaderboard.slice(0, 15).entries()) {
       lines.push(
-        `| ${i + 1} | ${truncAddr(entry.address)} | ${entry.label_summary.slice(0, 20)} | ${entry.markets_active} | ${usd(entry.total_capital_usd)} |`
+        `| ${i + 1} | ${truncAddr(entry.address)} | ${entry.label_summary.slice(0, 20)} | ${entry.markets_active} | ${formatCurrency(entry.total_capital_usd)} |`
       );
     }
     lines.push('');

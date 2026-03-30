@@ -29,7 +29,7 @@ describe('Nansen API wrappers', () => {
   it('getApiCallCount and resetApiCallCount', () => {
     expect(nansen.getApiCallCount()).toBe(0);
     // Let's force a call
-    const promise = nansen.execNansen('test');
+    void nansen.execNansen('test');
     expect(nansen.getApiCallCount()).toBe(1);
     nansen.resetApiCallCount();
     expect(nansen.getApiCallCount()).toBe(0);
@@ -95,6 +95,32 @@ describe('Nansen API wrappers', () => {
       expect(res.error).toBe('timeout-message');
       expect(res.code).toBe('429');
       expect(res.status).toBe(429);
+    });
+
+    it('handles exec file errors reading parsed JSON from stdout', async () => {
+      vi.mocked(cp.execFile).mockImplementation((...args: any[]) => {
+        const callback = args[args.length - 1];
+        callback(new Error('timeout-message'), JSON.stringify({ error: 'out_err' }), '');
+        return {} as any;
+      });
+      const prev = (nansen as any).IS_MOCK;
+      (nansen as any).IS_MOCK = false;
+      const res = await nansen.execNansen('test cmd');
+      (nansen as any).IS_MOCK = prev;
+      expect(res.error).toBe('out_err');
+    });
+
+    it('handles exec file errors reading parsed JSON from error message', async () => {
+      vi.mocked(cp.execFile).mockImplementation((...args: any[]) => {
+        const callback = args[args.length - 1];
+        callback(new Error(JSON.stringify({ error: 'msg_err' })), '', '');
+        return {} as any;
+      });
+      const prev = (nansen as any).IS_MOCK;
+      (nansen as any).IS_MOCK = false;
+      const res = await nansen.execNansen('test cmd');
+      (nansen as any).IS_MOCK = prev;
+      expect(res.error).toBe('msg_err');
     });
 
     it('handles generic exec error (non-mock mode)', async () => {

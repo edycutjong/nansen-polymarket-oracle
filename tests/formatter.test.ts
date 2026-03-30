@@ -45,6 +45,13 @@ describe('Formatter', () => {
     })),
   };
 
+  it('formats scan table correctly (score 0)', () => {
+    printScanTable([{ ...mockAnalysis, divergence_score: 0, divergence_level: 'ALIGNED' }]);
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('ALIGNED')
+    );
+  });
+
   it('printScanTable prints correctly', () => {
     printScanTable([mockAnalysis]);
     expect(consoleSpy).toHaveBeenCalled();

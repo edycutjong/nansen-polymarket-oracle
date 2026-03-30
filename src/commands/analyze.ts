@@ -12,6 +12,8 @@ import {
   fetchTradesByMarket,
   fetchPnlByMarket,
   fetchMarketScreener,
+  fetchMarketOHLCV,
+  fetchMarketOrderbook,
   getApiCallCount,
 } from '../lib/nansen.js';
 import { enrichHolders, filterSmartMoney } from '../lib/enricher.js';
@@ -80,6 +82,32 @@ export async function analyzeCommand(options: AnalyzeOptions): Promise<void> {
   // Step 4: Analyze divergence
   const analysis = analyzeMarket(market, smHolders, holders.length);
   printMarketDetail(analysis);
+
+  // Step 4.5: Market Liquidity & Trends
+  const obSpinner = ora('Fetching liquidity and trends...').start();
+  const orderbookRes = await fetchMarketOrderbook(marketId);
+  const ohlcvRes = await fetchMarketOHLCV(marketId);
+  obSpinner.stop();
+
+  if (orderbookRes.success && orderbookRes.data) {
+    const ob = orderbookRes.data as any;
+    console.log(chalk.white.bold('  Liquidity & Spread:'));
+    console.log(`    Spread: ${(ob.spread * 100).toFixed(2)}% | Midpoint: ${(ob.midpoint * 100).toFixed(1)}¢`);
+  }
+
+  if (ohlcvRes.success && ohlcvRes.data && Array.isArray(ohlcvRes.data)) {
+    const ohlcv = ohlcvRes.data as any[];
+    if (ohlcv.length > 0) {
+      const latest = ohlcv[ohlcv.length - 1];
+      const oldest = ohlcv[0];
+      const change = latest.close - oldest.close;
+      const trendColor = change >= 0 ? chalk.green : chalk.red;
+      console.log(chalk.white.bold('  Price Trend (24h):'));
+      console.log(`    ${trendColor(change >= 0 ? 'UP' : 'DOWN')} | Open: ${(oldest.open * 100).toFixed(1)}¢ -> Close: ${(latest.close * 100).toFixed(1)}¢`);
+    }
+  }
+  console.log(chalk.gray('─'.repeat(70)));
+  console.log('');
 
   // Step 5: Additional context — trades
   const tradeSpinner = ora('Fetching recent trades...').start();

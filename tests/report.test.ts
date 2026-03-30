@@ -3,7 +3,6 @@ import { reportCommand } from '../src/commands/report.js';
 import * as scan from '../src/commands/scan.js';
 import * as analyzer from '../src/lib/analyzer.js';
 import * as formatter from '../src/lib/formatter.js';
-import * as nansen from '../src/lib/nansen.js';
 import * as fs from 'node:fs';
 
 vi.mock('node:fs', () => ({

@@ -35,9 +35,9 @@ describe('getMockData', () => {
     expect(holders[0]).toHaveProperty('value_usd');
 
     // Test different yesPrice branches in generateTopHolders
-    getMockData('research prediction-market top-holders', ['--market-id', 'pm_eth_4k']); // low yes price < 0.4
-    getMockData('research prediction-market top-holders', ['--market-id', 'pm_sol_200']); // high yes price > 0.7
-    getMockData('research prediction-market top-holders', ['--market-id', 'pm_cb_listing']); // medium price
+    getMockData('research prediction-market top-holders', ['--market-id', 'pm_btc_200k_june']); // low yes price < 0.4
+    getMockData('research prediction-market top-holders', ['--market-id', 'pm_sol_firedancer']); // high yes price > 0.7
+    getMockData('research prediction-market top-holders', ['--market-id', 'pm_argentina_imf_deal']); // medium price
     getMockData('research prediction-market top-holders', ['--market-id']); // missing arg
     getMockData('research prediction-market top-holders', []); // missing --market-id entirely
   });

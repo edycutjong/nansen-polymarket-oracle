@@ -9,6 +9,8 @@ vi.mock('../src/lib/nansen.js', () => ({
   fetchTopHolders: vi.fn(),
   fetchTradesByMarket: vi.fn(),
   fetchPnlByMarket: vi.fn(),
+  fetchMarketOHLCV: vi.fn().mockResolvedValue({ success: true, data: [{ open: 0.4, close: 0.5 }, { open: 0.5, close: 0.6 }] }),
+  fetchMarketOrderbook: vi.fn().mockResolvedValue({ success: true, data: { midpoint: 0.5, spread: 0.02 } }),
   getApiCallCount: vi.fn().mockReturnValue(1),
 }));
 
@@ -31,6 +33,7 @@ vi.mock('ora', () => {
       start: vi.fn().mockReturnThis(),
       succeed: vi.fn().mockReturnThis(),
       fail: vi.fn().mockReturnThis(),
+      stop: vi.fn().mockReturnThis(),
       warn: vi.fn().mockReturnThis(),
       info: vi.fn().mockReturnThis()
     }))
@@ -124,6 +127,7 @@ describe('Analyze Command', () => {
     vi.mocked(enricher.filterSmartMoney).mockReturnValue([]);
     vi.mocked(nansen.fetchTradesByMarket).mockResolvedValue({ success: true, data: [] });
     vi.mocked(nansen.fetchPnlByMarket).mockResolvedValue({ success: true, data: [] });
+    vi.mocked(nansen.fetchMarketOHLCV).mockResolvedValue({ success: true, data: [{ open: 0.6, close: 0.5 }, { open: 0.5, close: 0.4 }] });
 
     await analyzeCommand({ marketId: 'm1' });
     expect(formatter.printMarketDetail).toHaveBeenCalled();

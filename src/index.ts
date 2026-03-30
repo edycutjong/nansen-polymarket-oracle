@@ -18,6 +18,7 @@ import { scanCommand } from './commands/scan.js';
 import { analyzeCommand } from './commands/analyze.js';
 import { reportCommand } from './commands/report.js';
 import { watchCommand } from './commands/watch.js';
+import { addressCommand } from './commands/address.js';
 import { checkNansenInstalled, resetApiCallCount } from './lib/nansen.js';
 
 const program = new Command();
@@ -81,6 +82,16 @@ program
     await ensureNansen();
     resetApiCallCount();
     await watchCommand({ marketId, ...options });
+  });
+
+// ─── address ──────────────────────────────────────────────────────────────────
+program
+  .command('address <address>')
+  .description('Investigate a specific trader address to show prediction market PnL, trades, and Smart Money profile')
+  .action(async (address) => {
+    await ensureNansen();
+    resetApiCallCount();
+    await addressCommand(address);
   });
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────────

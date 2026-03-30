@@ -4,7 +4,6 @@ import * as nansen from '../src/lib/nansen.js';
 import * as enricher from '../src/lib/enricher.js';
 import * as formatter from '../src/lib/formatter.js';
 import * as analyzer from '../src/lib/analyzer.js';
-import { labelCache, marketCache } from '../src/lib/cache.js';
 
 vi.mock('../src/lib/nansen.js', () => ({
   fetchMarketScreener: vi.fn(),
@@ -29,7 +28,7 @@ vi.mock('../src/lib/formatter.js', () => ({
   printMarketDetail: vi.fn(),
 }));
 
-let mockWarn = vi.fn().mockReturnThis();
+const mockWarn = vi.fn().mockReturnThis();
 
 vi.mock('ora', () => {
   return {
@@ -54,7 +53,7 @@ describe('Watch Command', () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
 
-    processOnSpy = vi.spyOn(process, 'on').mockImplementation((event, cb) => {
+    processOnSpy = vi.spyOn(process, 'on').mockImplementation((_event, _cb) => {
       return process;
     });
     processExitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {}) as any);

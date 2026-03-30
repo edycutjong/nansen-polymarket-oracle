@@ -45,8 +45,9 @@ describe('Scan Command', () => {
     {
       market_id: 'm1',
       question: 'Will something happen?',
-      volume_usd: 1000,
+      volume_usd: 150,
       category: 'Crypto',
+      yes_price: 0.6,
       outcomes: ['YES', 'NO'],
       outcome_prices: [0.6, 0.4],
     },
@@ -55,6 +56,7 @@ describe('Scan Command', () => {
       question: 'A very very very long question that will definitely get truncated by the 50 char limit?',
       volume_usd: 50,
       category: 'Politics',
+      yes_price: 0.5,
       outcomes: ['A', 'B'],
       outcome_prices: [0.5, 0.5],
     },
@@ -62,6 +64,7 @@ describe('Scan Command', () => {
       market_id: 'm3',
       question: 'Missing category market',
       volume_usd: 100,
+      yes_price: 0.5,
       outcomes: ['A', 'B'],
       outcome_prices: [0.5, 0.5],
     }
@@ -73,6 +76,22 @@ describe('Scan Command', () => {
     const res = await scanCommand({});
     expect(res).toEqual([]);
     expect(nansen.fetchMarketScreener).toHaveBeenCalled();
+  });
+
+  it('handles empty markets after category filter', async () => {
+    vi.mocked(nansen.fetchMarketScreener).mockResolvedValue({ success: true, data: mockMarkets });
+
+    const res = await scanCommand({ category: 'non_existent_category' });
+    expect(res).toEqual([]);
+    expect(vi.mocked(formatter.printScanTable)).not.toHaveBeenCalled();
+  });
+
+  it('filters out markets correctly via minVolume', async () => {
+    vi.mocked(nansen.fetchMarketScreener).mockResolvedValue({ success: true, data: mockMarkets });
+    
+    // minVolume = 120 should filter out m2 (50) and m3 (100)
+    const res = await scanCommand({ minVolume: '120' });
+    expect(res).toEqual([]);
   });
 
   it('handles empty markets after filter', async () => {
@@ -90,6 +109,38 @@ describe('Scan Command', () => {
     const res = await scanCommand({});
     expect(res).toEqual([]);
     expect(formatter.printScanTable).toHaveBeenCalledWith([]);
+  });
+
+  it('handles fetchMarketScreener returning success: false without error property', async () => {
+    vi.mocked(nansen.fetchMarketScreener).mockResolvedValue({ success: false });
+    const res = await scanCommand({});
+    expect(res).toEqual([]);
+  });
+
+  it('handles fetchMarketScreener returning success: true without data property', async () => {
+    vi.mocked(nansen.fetchMarketScreener).mockResolvedValue({ success: true } as any);
+    const res = await scanCommand({});
+    expect(res).toEqual([]);
+  });
+
+  it('prints divergence correctly when divergence score is exactly 0', async () => {
+    vi.mocked(nansen.fetchMarketScreener).mockResolvedValue({ success: true, data: [mockMarkets[0]] });
+    vi.mocked(nansen.fetchTopHolders).mockResolvedValue({
+      success: true,
+      data: [{ address: '0x1', shares: 100, position: 'YES' } as any]
+    });
+    vi.mocked(enricher.enrichHolders).mockResolvedValue([
+      { address: '0x1', shares: 60, position: 'YES', is_smart_money: true, value_usd: 60 } as any,
+      { address: '0x2', shares: 40, position: 'NO', is_smart_money: true, value_usd: 40 } as any
+    ]);
+    vi.mocked(enricher.filterSmartMoney).mockReturnValue([
+      { address: '0x1', shares: 60, position: 'YES', is_smart_money: true, value_usd: 60 } as any,
+      { address: '0x2', shares: 40, position: 'NO', is_smart_money: true, value_usd: 40 } as any
+    ]);
+
+    const res = await scanCommand({});
+    expect(res.length).toBe(1);
+    expect(res[0].divergence_score).toBe(0);
   });
 
   it('skips market if 0 holders returned', async () => {
@@ -119,16 +170,16 @@ describe('Scan Command', () => {
   it('processes markets and generates analysis', async () => {
     vi.mocked(nansen.fetchMarketScreener).mockResolvedValue({ success: true, data: mockMarkets });
     
-    // m1 will have smart money
+    // m1 will have smart money (divergence score > 0)
     vi.mocked(nansen.fetchTopHolders).mockResolvedValueOnce({
       success: true,
       data: [{ address: '0x1', shares: 100, position: 'YES' } as any],
     });
     vi.mocked(enricher.enrichHolders).mockResolvedValueOnce([
-      { address: '0x1', shares: 100, position: 'YES', sm_labels: ['Smart DEX Trader'] } as any
+      { address: '0x1', shares: 100, position: 'YES', sm_labels: ['Smart DEX Trader'], value_usd: 100 } as any
     ]);
     vi.mocked(enricher.filterSmartMoney).mockReturnValueOnce([
-      { address: '0x1', shares: 100, position: 'YES', sm_labels: ['Smart DEX Trader'] } as any
+      { address: '0x1', shares: 100, position: 'YES', sm_labels: ['Smart DEX Trader'], value_usd: 100 } as any
     ]);
 
     // m2 will have no smart money
