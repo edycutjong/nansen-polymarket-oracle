@@ -12,7 +12,7 @@ export NANSEN_MOCK=true
 
 echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║  🔮 Nansen Polymarket Oracle — Live Mock Demo               ║"
+echo "║  🔮 Nansen Polymarket Oracle — Live Mock Demo                ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
 
@@ -39,7 +39,7 @@ echo ""
 echo "📄 Markdown report: reports/demo-report.md"
 echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║  ✅ Demo Complete — All 3 commands executed successfully    ║"
+echo "║  ✅ Demo Complete — All 3 commands executed successfully     ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
 echo "💡 Tip: Run 'NANSEN_MOCK=true npx tsx src/index.ts watch pm_btc_200k_june --interval 5'"
