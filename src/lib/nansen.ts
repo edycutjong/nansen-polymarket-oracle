@@ -2,12 +2,16 @@
  * Nansen CLI wrapper — evolved from NansenTerm's lib/nansen.ts.
  * Executes nansen-cli commands via child_process and parses JSON output.
  *
- * Supports NANSEN_MOCK=true for local dev/testing without live API.
- * Added prediction-market specific wrappers + profiler batch support.
+ * Supports three data modes:
+ *  - NANSEN_MOCK=true   → synthetic data (works offline, no API)
+ *  - NANSEN_REPLAY=true → real recorded data from nansen-record.log
+ *  - (default)          → live Nansen CLI API
  */
 
 import { execFile } from 'node:child_process';
+import { appendFileSync } from 'node:fs';
 import { IS_MOCK, getMockData } from './mock.js';
+import { IS_REPLAY, getReplayData } from './replay.js';
 
 // ---------------------------------------------------------------------------
 // Core Types
@@ -68,6 +72,20 @@ export function execNansen<T = unknown>(
     });
   }
 
+  // Replay mode — return recorded real API data from nansen-record.log
+  if (IS_REPLAY) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const replay = getReplayData(command, args);
+        if (replay !== null) {
+          resolve({ success: true, data: replay as T });
+        } else {
+          resolve({ success: false, error: '[REPLAY] No recorded data for: ' + command + ' ' + args.join(' ') });
+        }
+      }, 150); // faster than mock — simulates cached lookups
+    });
+  }
+
   return new Promise((resolve) => {
     const fullArgs = [...command.split(' '), ...args, '--pretty'];
 
@@ -98,6 +116,18 @@ export function execNansen<T = unknown>(
 
         try {
           const parsed = JSON.parse(stdout);
+          
+          if (process.env.NANSEN_RECORD === 'true') {
+            const logEntry = `\n\n// Command: ${command} ${args.join(' ')}\n${JSON.stringify(parsed, null, 2)}`;
+            appendFileSync('nansen-record.log', logEntry);
+          }
+
+          // The real CLI wraps lists in { pagination, data: [...] } 
+          // Our code historically expects the raw array directly in result.data
+          if (parsed.success && parsed.data && typeof parsed.data === 'object' && !Array.isArray(parsed.data) && 'data' in parsed.data) {
+            parsed.data = parsed.data.data;
+          }
+
           resolve(parsed as NansenResponse<T>);
         } catch {
           resolve({
@@ -115,11 +145,28 @@ export function execNansen<T = unknown>(
 // Prediction Market Wrappers
 // ---------------------------------------------------------------------------
 
+function normalizeMarket(m: any) {
+  return {
+    ...m,
+    market_slug: m.slug || m.market_slug,
+    category: Array.isArray(m.tags) && m.tags.length > 0 ? m.tags[0] : (m.category || 'Unknown'),
+    yes_price: m.last_trade_price ?? m.best_ask ?? m.yes_price ?? 0.5,
+    volume_usd: m.volume ?? m.volume_usd ?? 0,
+    liquidity_usd: m.liquidity ?? m.liquidity_usd ?? 0,
+    num_traders: m.unique_traders_24h ?? m.num_traders ?? 0,
+  };
+}
+
 /** Discover active prediction markets */
 export async function fetchMarketScreener(limit = 50) {
-  return execNansen('research prediction-market market-screener', [
+  const res = await execNansen('research prediction-market market-screener', [
     '--limit', String(limit),
   ]);
+  
+  if (res.success && Array.isArray(res.data)) {
+    res.data = res.data.map(normalizeMarket);
+  }
+  return res;
 }
 
 /** Event-level overview */
@@ -129,12 +176,48 @@ export async function fetchEventScreener(limit = 20) {
   ]);
 }
 
+/**
+ * Normalize a holder from the real API schema to internal MarketHolder type.
+ * Real API uses: side ("Yes"/"No"), position_size, owner_address, current_price
+ * Internal uses: position ("YES"/"NO"), shares, value_usd, address (actual wallet)
+ */
+function normalizeHolder(h: any) {
+  // Already in internal format (has position field)
+  if (h.position !== undefined) return h;
+
+  // In Polymarket, owner_address is the real wallet; address is the proxy contract.
+  // Use the real wallet for profiler enrichment lookups.
+  const resolvedAddress =
+    h.owner_address && h.owner_address !== '0x' && h.owner_address.length > 4
+      ? h.owner_address
+      : h.address;
+
+  const side = ((h.side || 'Yes') as string).toUpperCase() as 'YES' | 'NO';
+  const currentPrice = h.current_price ?? 1;
+
+  return {
+    ...h,
+    address: resolvedAddress,
+    proxy_address: h.address, // Preserve original Polymarket proxy
+    position: side,
+    shares: h.position_size ?? h.shares ?? 0,
+    value_usd: (h.position_size ?? 0) * currentPrice,
+    entry_price: h.avg_entry_price ?? h.entry_price,
+    pnl_usd: h.unrealized_pnl_usd ?? h.pnl_usd ?? 0,
+  };
+}
+
 /** Top holders for a specific market */
 export async function fetchTopHolders(marketId: string, limit = 50) {
-  return execNansen('research prediction-market top-holders', [
+  const res = await execNansen('research prediction-market top-holders', [
     '--market-id', marketId,
     '--limit', String(limit),
   ]);
+
+  if (res.success && Array.isArray(res.data)) {
+    res.data = res.data.map(normalizeHolder);
+  }
+  return res;
 }
 
 /** Trades for a specific market */

@@ -11,6 +11,7 @@
 
 import { fetchProfilerLabels } from './nansen.js';
 import { labelCache } from './cache.js';
+import { lookupKnownWallet } from './known-wallets.js';
 import type { MarketHolder } from '../types/market.js';
 import type { WalletLabel, SmartMoneyHolder } from '../types/smartmoney.js';
 
@@ -46,12 +47,27 @@ export function summarizeLabels(labels: WalletLabel[]): string {
 
 /**
  * Enrich a single address with Nansen labels.
- * Uses cache to avoid redundant API calls.
+ *
+ * Lookup order:
+ * 1. Local known-wallets registry (free, instant — $1M+ whale addresses)
+ * 2. Label cache (previously resolved addresses)
+ * 3. Nansen profiler API (costs credits — used only for unknown addresses)
+ *
+ * This means scans work even when profiler credits are exhausted.
  */
 export async function enrichAddress(
   address: string,
   chain = 'ethereum',
 ): Promise<{ labels: WalletLabel[]; is_smart_money: boolean }> {
+  // Fast path: check known-wallets registry first (zero API cost)
+  const knownLabel = lookupKnownWallet(address);
+  if (knownLabel) {
+    return {
+      labels: [knownLabel],
+      is_smart_money: true, // All known wallets are SM by definition
+    };
+  }
+
   const cacheKey = `labels:${chain}:${address}`;
 
   return labelCache.getOrFetch(cacheKey, async () => {

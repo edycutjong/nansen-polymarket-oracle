@@ -31,161 +31,199 @@ const REGULAR_WALLETS = Array.from({ length: 30 }, () => fakeEvmAddress());
 
 interface MockMarket {
   market_id: string;
-  market_slug: string;
+  slug: string;
   question: string;
-  category: string;
-  yes_price: number;
-  volume_usd: number;
-  liquidity_usd: number;
-  num_traders: number;
-  end_date: string;
+  tags: string[];
+  event_id: string;
+  event_title: string;
   active: boolean;
+  closed: boolean;
+  end_date: string;
+  neg_risk: boolean;
+  volume: number;
+  volume_24hr: number;
+  volume_1wk: number;
+  volume_1mo: number;
+  liquidity: number;
+  volume_change_pct: number;
+  open_interest: number;
+  best_bid: number;
+  best_ask: number;
+  last_trade_price: number;
+  one_day_price_change: number;
+  unique_traders_24h: number;
+  created_at: string;
+  age_hours: number;
 }
 
 const MARKETS: MockMarket[] = [
   {
     market_id: 'pm_btc_200k_june',
-    market_slug: 'will-bitcoin-hit-200k-by-june-2026',
+    slug: 'will-bitcoin-hit-200k-by-june-2026',
     question: 'Will Bitcoin hit $200K by June 2026?',
-    category: 'Crypto',
-    yes_price: 0.12,
-    volume_usd: 18_200_000,
-    liquidity_usd: 4_500_000,
-    num_traders: 8432,
-    end_date: '2026-06-30T23:59:59Z',
-    active: true,
+    tags: ['Crypto', 'Bitcoin', 'Price Prediction'],
+    event_id: 'evt_crypto_price_2026',
+    event_title: 'Crypto Price Predictions 2026',
+    active: true, closed: false, neg_risk: true,
+    end_date: '2026-06-30T00:00:00',
+    volume: 18_200_000, volume_24hr: 2_100_000, volume_1wk: 8_500_000, volume_1mo: 18_200_000,
+    liquidity: 4_500_000, volume_change_pct: 15.2, open_interest: 12_000_000,
+    best_bid: 0.115, best_ask: 0.125, last_trade_price: 0.12, one_day_price_change: -0.02,
+    unique_traders_24h: 1200, created_at: '2025-01-15T10:00:00.000000', age_hours: 10000,
   },
   {
     market_id: 'pm_eth_etf_staking',
-    market_slug: 'ethereum-etf-staking-approval-q3',
+    slug: 'ethereum-etf-staking-approval-q3',
     question: 'Ethereum ETF Staking Approval by Q3?',
-    category: 'Crypto',
-    yes_price: 0.45,
-    volume_usd: 12_100_000,
-    liquidity_usd: 3_200_000,
-    num_traders: 5621,
-    end_date: '2026-09-30T23:59:59Z',
-    active: true,
+    tags: ['Crypto', 'Ethereum', 'ETF'],
+    event_id: 'evt_eth_etf',
+    event_title: 'Ethereum ETF Developments',
+    active: true, closed: false, neg_risk: false,
+    end_date: '2026-09-30T00:00:00',
+    volume: 12_100_000, volume_24hr: 1_800_000, volume_1wk: 5_200_000, volume_1mo: 12_100_000,
+    liquidity: 3_200_000, volume_change_pct: 8.5, open_interest: 8_500_000,
+    best_bid: 0.44, best_ask: 0.46, last_trade_price: 0.45, one_day_price_change: 0.01,
+    unique_traders_24h: 850, created_at: '2025-03-01T12:00:00.000000', age_hours: 8500,
   },
   {
     market_id: 'pm_sol_firedancer',
-    market_slug: 'solana-firedancer-mainnet-2026',
+    slug: 'solana-firedancer-mainnet-2026',
     question: 'Solana Firedancer Mainnet Launch in 2026?',
-    category: 'Crypto',
-    yes_price: 0.78,
-    volume_usd: 5_400_000,
-    liquidity_usd: 1_800_000,
-    num_traders: 3100,
-    end_date: '2026-12-31T23:59:59Z',
-    active: true,
+    tags: ['Crypto', 'Solana', 'Infrastructure'],
+    event_id: 'evt_sol_upgrades',
+    event_title: 'Solana Network Upgrades',
+    active: true, closed: false, neg_risk: false,
+    end_date: '2026-12-31T00:00:00',
+    volume: 5_400_000, volume_24hr: 620_000, volume_1wk: 2_100_000, volume_1mo: 5_400_000,
+    liquidity: 1_800_000, volume_change_pct: 22.1, open_interest: 3_800_000,
+    best_bid: 0.77, best_ask: 0.79, last_trade_price: 0.78, one_day_price_change: 0.03,
+    unique_traders_24h: 420, created_at: '2025-06-15T08:00:00.000000', age_hours: 6800,
   },
   {
     market_id: 'pm_fed_rate_cut_may',
-    market_slug: 'fed-rate-cut-may-2026',
+    slug: 'fed-rate-cut-may-2026',
     question: 'Fed Rate Cut in May 2026?',
-    category: 'Economics',
-    yes_price: 0.65,
-    volume_usd: 31_000_000,
-    liquidity_usd: 8_200_000,
-    num_traders: 14200,
-    end_date: '2026-05-31T23:59:59Z',
-    active: true,
+    tags: ['Economics', 'Federal Reserve', 'Interest Rates'],
+    event_id: 'evt_fed_policy_2026',
+    event_title: 'Federal Reserve Policy Decisions',
+    active: true, closed: false, neg_risk: false,
+    end_date: '2026-05-31T00:00:00',
+    volume: 31_000_000, volume_24hr: 4_200_000, volume_1wk: 14_500_000, volume_1mo: 31_000_000,
+    liquidity: 8_200_000, volume_change_pct: 32.8, open_interest: 22_000_000,
+    best_bid: 0.64, best_ask: 0.66, last_trade_price: 0.65, one_day_price_change: -0.01,
+    unique_traders_24h: 2800, created_at: '2025-02-01T09:00:00.000000', age_hours: 9500,
   },
   {
     market_id: 'pm_trump_crypto_reserve',
-    market_slug: 'trump-signs-crypto-strategic-reserve',
+    slug: 'trump-signs-crypto-strategic-reserve',
     question: 'Trump Signs Crypto Strategic Reserve Executive Order?',
-    category: 'Politics',
-    yes_price: 0.34,
-    volume_usd: 22_800_000,
-    liquidity_usd: 6_100_000,
-    num_traders: 11500,
-    end_date: '2026-12-31T23:59:59Z',
-    active: true,
+    tags: ['Politics', 'Crypto', 'Regulation'],
+    event_id: 'evt_us_crypto_policy',
+    event_title: 'US Crypto Policy',
+    active: true, closed: false, neg_risk: true,
+    end_date: '2026-12-31T00:00:00',
+    volume: 22_800_000, volume_24hr: 3_100_000, volume_1wk: 10_200_000, volume_1mo: 22_800_000,
+    liquidity: 6_100_000, volume_change_pct: 18.9, open_interest: 15_500_000,
+    best_bid: 0.33, best_ask: 0.35, last_trade_price: 0.34, one_day_price_change: 0.02,
+    unique_traders_24h: 1900, created_at: '2025-04-10T15:00:00.000000', age_hours: 8200,
   },
   {
     market_id: 'pm_argentina_imf_deal',
-    market_slug: 'argentina-reaches-imf-deal-q2',
+    slug: 'argentina-reaches-imf-deal-q2',
     question: 'Argentina Reaches IMF Deal by Q2 2026?',
-    category: 'Economics',
-    yes_price: 0.58,
-    volume_usd: 8_900_000,
-    liquidity_usd: 2_300_000,
-    num_traders: 4200,
-    end_date: '2026-06-30T23:59:59Z',
-    active: true,
+    tags: ['Economics', 'Geopolitics', 'Latin America'],
+    event_id: 'evt_argentina_econ',
+    event_title: 'Argentina Economic Recovery',
+    active: true, closed: false, neg_risk: false,
+    end_date: '2026-06-30T00:00:00',
+    volume: 8_900_000, volume_24hr: 980_000, volume_1wk: 3_800_000, volume_1mo: 8_900_000,
+    liquidity: 2_300_000, volume_change_pct: 11.4, open_interest: 6_200_000,
+    best_bid: 0.57, best_ask: 0.59, last_trade_price: 0.58, one_day_price_change: 0,
+    unique_traders_24h: 650, created_at: '2025-08-20T11:00:00.000000', age_hours: 5200,
   },
   {
     market_id: 'pm_ai_agi_2026',
-    market_slug: 'artificial-general-intelligence-achieved-2026',
+    slug: 'artificial-general-intelligence-achieved-2026',
     question: 'AGI Achieved by End of 2026?',
-    category: 'Technology',
-    yes_price: 0.05,
-    volume_usd: 42_000_000,
-    liquidity_usd: 11_000_000,
-    num_traders: 23000,
-    end_date: '2026-12-31T23:59:59Z',
-    active: true,
+    tags: ['Technology', 'AI', 'Science'],
+    event_id: 'evt_ai_milestones',
+    event_title: 'AI Milestones 2026',
+    active: true, closed: false, neg_risk: true,
+    end_date: '2026-12-31T00:00:00',
+    volume: 42_000_000, volume_24hr: 5_800_000, volume_1wk: 19_000_000, volume_1mo: 42_000_000,
+    liquidity: 11_000_000, volume_change_pct: 45.6, open_interest: 30_000_000,
+    best_bid: 0.045, best_ask: 0.055, last_trade_price: 0.05, one_day_price_change: -0.005,
+    unique_traders_24h: 3800, created_at: '2025-01-01T00:00:00.000000', age_hours: 10500,
   },
   {
     market_id: 'pm_xrp_etf_approval',
-    market_slug: 'xrp-spot-etf-approved-2026',
+    slug: 'xrp-spot-etf-approved-2026',
     question: 'XRP Spot ETF Approved in 2026?',
-    category: 'Crypto',
-    yes_price: 0.38,
-    volume_usd: 15_600_000,
-    liquidity_usd: 4_100_000,
-    num_traders: 7800,
-    end_date: '2026-12-31T23:59:59Z',
-    active: true,
+    tags: ['Crypto', 'XRP', 'ETF', 'Regulation'],
+    event_id: 'evt_crypto_etfs',
+    event_title: 'Crypto ETF Approvals',
+    active: true, closed: false, neg_risk: false,
+    end_date: '2026-12-31T00:00:00',
+    volume: 15_600_000, volume_24hr: 2_200_000, volume_1wk: 7_100_000, volume_1mo: 15_600_000,
+    liquidity: 4_100_000, volume_change_pct: 12.3, open_interest: 10_800_000,
+    best_bid: 0.37, best_ask: 0.39, last_trade_price: 0.38, one_day_price_change: 0.01,
+    unique_traders_24h: 1100, created_at: '2025-05-01T14:00:00.000000', age_hours: 7800,
   },
   {
     market_id: 'pm_uniswap_v4_launch',
-    market_slug: 'uniswap-v4-mainnet-launch-q2',
+    slug: 'uniswap-v4-mainnet-launch-q2',
     question: 'Uniswap V4 Launches on Mainnet by Q2 2026?',
-    category: 'Crypto',
-    yes_price: 0.72,
-    volume_usd: 6_800_000,
-    liquidity_usd: 2_000_000,
-    num_traders: 2900,
-    end_date: '2026-06-30T23:59:59Z',
-    active: true,
+    tags: ['Crypto', 'DeFi', 'Uniswap'],
+    event_id: 'evt_defi_launches',
+    event_title: 'DeFi Protocol Launches',
+    active: true, closed: false, neg_risk: false,
+    end_date: '2026-06-30T00:00:00',
+    volume: 6_800_000, volume_24hr: 780_000, volume_1wk: 2_900_000, volume_1mo: 6_800_000,
+    liquidity: 2_000_000, volume_change_pct: 9.7, open_interest: 4_500_000,
+    best_bid: 0.71, best_ask: 0.73, last_trade_price: 0.72, one_day_price_change: 0.02,
+    unique_traders_24h: 380, created_at: '2025-07-10T16:00:00.000000', age_hours: 6200,
   },
   {
     market_id: 'pm_us_recession_2026',
-    market_slug: 'us-recession-declared-2026',
+    slug: 'us-recession-declared-2026',
     question: 'US Recession Declared in 2026?',
-    category: 'Economics',
-    yes_price: 0.22,
-    volume_usd: 28_400_000,
-    liquidity_usd: 7_500_000,
-    num_traders: 16800,
-    end_date: '2026-12-31T23:59:59Z',
-    active: true,
+    tags: ['Economics', 'United States', 'Recession'],
+    event_id: 'evt_us_economy',
+    event_title: 'US Economic Outlook',
+    active: true, closed: false, neg_risk: false,
+    end_date: '2026-12-31T00:00:00',
+    volume: 28_400_000, volume_24hr: 3_600_000, volume_1wk: 12_800_000, volume_1mo: 28_400_000,
+    liquidity: 7_500_000, volume_change_pct: 27.5, open_interest: 19_000_000,
+    best_bid: 0.21, best_ask: 0.23, last_trade_price: 0.22, one_day_price_change: -0.01,
+    unique_traders_24h: 2400, created_at: '2025-03-15T10:00:00.000000', age_hours: 9000,
   },
   {
     market_id: 'pm_eth_10k',
-    market_slug: 'will-eth-hit-10k-by-dec-2026',
+    slug: 'will-eth-hit-10k-by-dec-2026',
     question: 'Will ETH hit $10K by December 2026?',
-    category: 'Crypto',
-    yes_price: 0.08,
-    volume_usd: 9_200_000,
-    liquidity_usd: 2_400_000,
-    num_traders: 5100,
-    end_date: '2026-12-31T23:59:59Z',
-    active: true,
+    tags: ['Crypto', 'Ethereum', 'Price Prediction'],
+    event_id: 'evt_crypto_price_2026',
+    event_title: 'Crypto Price Predictions 2026',
+    active: true, closed: false, neg_risk: true,
+    end_date: '2026-12-31T00:00:00',
+    volume: 9_200_000, volume_24hr: 1_100_000, volume_1wk: 4_000_000, volume_1mo: 9_200_000,
+    liquidity: 2_400_000, volume_change_pct: 14.8, open_interest: 6_400_000,
+    best_bid: 0.075, best_ask: 0.085, last_trade_price: 0.08, one_day_price_change: 0.005,
+    unique_traders_24h: 720, created_at: '2025-04-01T12:00:00.000000', age_hours: 8600,
   },
   {
     market_id: 'pm_openai_ipo',
-    market_slug: 'openai-ipo-in-2026',
+    slug: 'openai-ipo-in-2026',
     question: 'OpenAI IPO Happens in 2026?',
-    category: 'Technology',
-    yes_price: 0.61,
-    volume_usd: 16_300_000,
-    liquidity_usd: 4_300_000,
-    num_traders: 9200,
-    end_date: '2026-12-31T23:59:59Z',
-    active: true,
+    tags: ['Technology', 'AI', 'IPO'],
+    event_id: 'evt_tech_ipos',
+    event_title: 'Tech IPOs 2026',
+    active: true, closed: false, neg_risk: false,
+    end_date: '2026-12-31T00:00:00',
+    volume: 16_300_000, volume_24hr: 2_400_000, volume_1wk: 7_500_000, volume_1mo: 16_300_000,
+    liquidity: 4_300_000, volume_change_pct: 19.2, open_interest: 11_200_000,
+    best_bid: 0.60, best_ask: 0.62, last_trade_price: 0.61, one_day_price_change: 0.01,
+    unique_traders_24h: 1500, created_at: '2025-02-15T08:00:00.000000', age_hours: 9200,
   },
 ];
 
@@ -200,48 +238,49 @@ const generateTopHolders = (args: string[]) => {
   const marketIdIdx = args.indexOf('--market-id');
   const marketId = marketIdIdx >= 0 ? args[marketIdIdx + 1] || '' : '';
 
-  const market = MARKETS.find(m => m.market_id === marketId || m.market_slug === marketId);
-  const yesPrice = market?.yes_price ?? 0.5;
+  const market = MARKETS.find(m => m.market_id === marketId || m.slug === marketId);
+  const yesPrice = market?.last_trade_price ?? 0.5;
 
   // Decide SM bias: SM often disagrees with the crowd
   // If market says <40% YES, SM tends to lean YES (contrarian bullish)
   // If market says >70% YES, SM might lean NO (contrarian bearish)
   const smBullishBias = yesPrice < 0.4 ? 0.85 : yesPrice > 0.7 ? 0.3 : 0.6;
 
-  // SM holders (use stable addresses so profiler labels will match)
+  // SM holders — owner_address is the real wallet, address is the Polymarket proxy
   const smCount = 3 + Math.floor(Math.random() * 5); // 3-7 SM holders
   const smHolders = SM_WALLETS.slice(0, smCount).map(w => {
     const isYes = Math.random() < smBullishBias;
-    const value = 50_000 + Math.random() * 2_000_000;
+    const price = isYes ? yesPrice : (1 - yesPrice);
+    const posSize = Math.round((50_000 + Math.random() * 2_000_000) / price);
     return {
-      address: w.address,
-      address_label: w.fullname,
-      position: isYes ? 'YES' as const : 'NO' as const,
-      shares: Math.round(value / (isYes ? yesPrice : (1 - yesPrice))),
-      value_usd: Math.round(value),
-      entry_price: isYes
-        ? yesPrice * (0.6 + Math.random() * 0.3)  // entered below current price
-        : (1 - yesPrice) * (0.6 + Math.random() * 0.3),
-      pnl_usd: Math.round((Math.random() - 0.3) * 50_000),
-      timestamp: new Date(Date.now() - Math.random() * 30 * 86_400_000).toISOString(),
+      market_id: market?.market_id || '',
+      outcome_index: isYes ? 1 : 2,
+      address: fakeEvmAddress(),       // Polymarket proxy contract
+      owner_address: w.address,        // Real wallet (for profiler lookup)
+      side: isYes ? 'Yes' : 'No',
+      position_size: posSize,
+      avg_entry_price: price * (0.6 + Math.random() * 0.3),
+      current_price: price,
+      unrealized_pnl_usd: Math.round((Math.random() - 0.3) * 50_000),
     };
   });
 
-  // Regular holders (random addresses)
+  // Regular holders (random addresses, no owner_address)
   const regularCount = 15 + Math.floor(Math.random() * 20);
   const regularHolders = REGULAR_WALLETS.slice(0, regularCount).map(addr => {
     const isYes = Math.random() < yesPrice; // Regular traders roughly follow market odds
-    const value = 1_000 + Math.random() * 100_000;
+    const price = isYes ? yesPrice : (1 - yesPrice);
+    const posSize = Math.round((1_000 + Math.random() * 100_000) / price);
     return {
+      market_id: market?.market_id || '',
+      outcome_index: isYes ? 1 : 2,
       address: addr,
-      position: isYes ? 'YES' as const : 'NO' as const,
-      shares: Math.round(value / (isYes ? yesPrice : (1 - yesPrice))),
-      value_usd: Math.round(value),
-      entry_price: isYes
-        ? yesPrice * (0.5 + Math.random() * 0.5)
-        : (1 - yesPrice) * (0.5 + Math.random() * 0.5),
-      pnl_usd: Math.round((Math.random() - 0.5) * 20_000),
-      timestamp: new Date(Date.now() - Math.random() * 60 * 86_400_000).toISOString(),
+      owner_address: '0x',              // No known owner (like real API)
+      side: isYes ? 'Yes' : 'No',
+      position_size: posSize,
+      avg_entry_price: price * (0.5 + Math.random() * 0.5),
+      current_price: price,
+      unrealized_pnl_usd: Math.round((Math.random() - 0.5) * 20_000),
     };
   });
 
@@ -261,14 +300,14 @@ const generateEventScreener = (_args: string[]) => {
       event_title: 'Crypto Price Predictions 2026',
       category: 'Crypto',
       total_volume_usd: 52_000_000,
-      markets: MARKETS.filter(m => m.category === 'Crypto').slice(0, 4),
+      markets: MARKETS.filter(m => m.tags.includes('Crypto')).slice(0, 4),
     },
     {
       event_slug: 'us-economic-outlook-2026',
       event_title: 'US Economic Outlook 2026',
       category: 'Economics',
       total_volume_usd: 68_300_000,
-      markets: MARKETS.filter(m => m.category === 'Economics').slice(0, 3),
+      markets: MARKETS.filter(m => m.tags.includes('Economics')).slice(0, 3),
     },
   ];
 };
@@ -424,15 +463,15 @@ const generateTradesByAddress = (_args: string[]) => {
 
 const generatePositionDetail = (args: string[]) => {
   const holders = generateTopHolders(args);
-  const yesHolders = holders.filter(h => h.position === 'YES');
-  const noHolders = holders.filter(h => h.position === 'NO');
+  const yesHolders = holders.filter(h => h.side === 'Yes');
+  const noHolders = holders.filter(h => h.side === 'No');
   return {
     total_holders: holders.length,
     yes_holders: yesHolders.length,
     no_holders: noHolders.length,
-    total_value_usd: holders.reduce((a, h) => a + h.value_usd, 0),
-    yes_value_usd: yesHolders.reduce((a, h) => a + h.value_usd, 0),
-    no_value_usd: noHolders.reduce((a, h) => a + h.value_usd, 0),
+    total_value_usd: holders.reduce((a, h) => a + h.position_size * h.current_price, 0),
+    yes_value_usd: yesHolders.reduce((a, h) => a + h.position_size * h.current_price, 0),
+    no_value_usd: noHolders.reduce((a, h) => a + h.position_size * h.current_price, 0),
     holders,
   };
 };
