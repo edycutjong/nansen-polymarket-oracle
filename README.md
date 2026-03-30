@@ -29,40 +29,42 @@ When Smart Money conviction diverges significantly from market odds, it signals 
    - **Negative** = SM is more bearish than market odds
    - Markets with |score| ≥ 40 are flagged as **🔥 EXTREME** alpha opportunities
 
-## Quick Demo
+## 🚀 Quick Start
+
+Get up and running with the Nansen Polymarket Oracle in seconds.
+
+### 1. Installation & Setup
 
 ```bash
-# Full mock demo (no API key required)
-bash demo.sh
-
-# Or run individual commands with mock data:
-NANSEN_MOCK=true npx tsx src/index.ts scan --limit 8
-NANSEN_MOCK=true npx tsx src/index.ts analyze pm_btc_200k_june
-NANSEN_MOCK=true npx tsx src/index.ts report --format md --output reports/alpha.md
-NANSEN_MOCK=true npx tsx src/index.ts watch pm_btc_200k_june --interval 5
-```
-
-## Quick Start (Live)
-
-```bash
-# Install deps
+# Install local dependencies
 npm install
 
-# Ensure Nansen CLI is configured
+# Build and link the CLI globally (Now you don't need to type file paths!)
+npm run build
+npm link
+
+# Install and configure Nansen CLI
 npm install -g nansen-cli
 nansen auth login
+```
 
-# Scan all active markets
-npx tsx src/index.ts scan
+### 2. Run the Oracle
 
-# Deep dive into a specific market
-npx tsx src/index.ts analyze <market-id>
+You can run the oracle against the live Nansen API or use the comprehensive mock data system for local testing.
 
-# Generate a full report
-npx tsx src/index.ts report --format md --output reports/alpha.md
+**Live Data (Requires Auth):**
+```bash
+nansen-oracle scan
+nansen-oracle analyze <market-id>
+```
 
-# Monitor a market in real-time
-npx tsx src/index.ts watch <market-id> --interval 60
+**Mock Data (No Auth Required):**
+```bash
+# Run the automated showcase
+bash demo.sh
+
+# Or test commands with mock intelligence
+NANSEN_MOCK=true nansen-oracle scan --limit 8
 ```
 
 ## Commands
@@ -212,7 +214,7 @@ The project includes a full mock data system for offline development:
 export NANSEN_MOCK=true
 
 # All commands work identically with mock data
-npx tsx src/index.ts scan --limit 5
+nansen-oracle scan --limit 5
 ```
 
 Mock data is generated deterministically with strategically placed Smart Money wallets to ensure meaningful divergence scores.

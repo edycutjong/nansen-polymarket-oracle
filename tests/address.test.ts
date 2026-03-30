@@ -78,12 +78,37 @@ describe('Address Command', () => {
     expect(nansen.fetchProfilerLabels).toHaveBeenCalledWith(mockAddress);
   });
 
-  it('handles API failure gently', async () => {
-    vi.mocked(nansen.fetchProfilerLabels).mockRejectedValue(new Error('Network drop'));
+  it('runs address analysis flow with fallback branches', async () => {
+    vi.mocked(nansen.fetchProfilerLabels).mockResolvedValue({
+      success: true,
+      data: [{ name: 'Label1' }, 'Label2']
+    });
+    vi.mocked(nansen.fetchPnlSummary).mockResolvedValue({
+      success: true,
+      data: { total_realized_pnl_usd: 0, total_unrealized_pnl_usd: 0 }
+    });
+    vi.mocked(nansen.fetchPnlByAddress).mockResolvedValue({
+      success: true,
+      data: [{ market_id: 'm2', total_pnl_usd: -50 }]
+    });
+    vi.mocked(nansen.fetchTradesByAddress).mockResolvedValue({
+      success: true,
+      data: [{ side: 'SELL', outcome: 'NO', value_usd: 100 }]
+    });
 
     await addressCommand(mockAddress);
-    
     expect(nansen.fetchProfilerLabels).toHaveBeenCalledWith(mockAddress);
+  });
+
+  it('handles API failure gently with Error object', async () => {
+    vi.mocked(nansen.fetchProfilerLabels).mockRejectedValue(new Error('Network drop'));
+    await addressCommand(mockAddress);
+    expect(nansen.fetchPnlSummary).not.toHaveBeenCalled();
+  });
+
+  it('handles API failure gently with string error', async () => {
+    vi.mocked(nansen.fetchProfilerLabels).mockRejectedValue('String Error');
+    await addressCommand(mockAddress);
     expect(nansen.fetchPnlSummary).not.toHaveBeenCalled();
   });
 });
