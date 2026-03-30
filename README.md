@@ -6,6 +6,10 @@
 
 Cross-reference on-chain whale positions with prediction market odds to identify mispriced outcomes. Built for **Week 3** of the [Nansen CLI Build Challenge](https://x.com/nansen_ai).
 
+<p align="center">
+  <img src="docs/demo.gif" alt="Nansen Oracle Demo" />
+</p>
+
 ---
 
 ## What It Does
@@ -58,6 +62,10 @@ The Oracle supports three data modes — no API key is needed for the default de
 bash demo.sh
 ```
 
+<p align="center">
+  <img src="docs/screenshots/splash.png" alt="Nansen Oracle Splash" width="640" />
+</p>
+
 ```
   ███╗   ██╗ █████╗ ███╗   ██╗███████╗███████╗███╗   ██╗
   ████╗  ██║██╔══██╗████╗  ██║██╔════╝██╔════╝████╗  ██║
@@ -98,6 +106,23 @@ nansen-oracle scan
 ```
 
 > 💡 **`nansen-record.log`** contains captured responses from a real Nansen API session. This enables high-fidelity demonstrations with actual Polymarket data (real markets, real whale addresses) without consuming API credits.
+
+## Screenshots
+
+### Scan — Market Discovery & Divergence Table
+<p align="center">
+  <img src="docs/screenshots/scan-results.png" alt="Scan Results" width="720" />
+</p>
+
+### Analyze — Deep Market Intel
+<p align="center">
+  <img src="docs/screenshots/analyze-deep.png" alt="Deep Analysis" width="720" />
+</p>
+
+### Report — Alpha Export
+<p align="center">
+  <img src="docs/screenshots/report-final.png" alt="Report Output" width="720" />
+</p>
 
 ## Commands
 
