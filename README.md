@@ -50,22 +50,54 @@ nansen auth login
 
 ### 2. Run the Oracle
 
-You can run the oracle against the live Nansen API or use the comprehensive mock data system for local testing.
+The Oracle supports three data modes — no API key is needed for the default demo.
 
-**Live Data (Requires Auth):**
+**🎬 Quick Demo (Recommended — No API Key Required):**
 ```bash
-nansen-oracle scan
-nansen-oracle analyze <market-id>
-```
-
-**Mock Data (No Auth Required):**
-```bash
-# Run the automated showcase
+# Uses real recorded API data from nansen-record.log
 bash demo.sh
-
-# Or test commands with mock intelligence
-NANSEN_MOCK=true nansen-oracle scan --limit 8
 ```
+
+```
+  ███╗   ██╗ █████╗ ███╗   ██╗███████╗███████╗███╗   ██╗
+  ████╗  ██║██╔══██╗████╗  ██║██╔════╝██╔════╝████╗  ██║
+  ██╔██╗ ██║███████║██╔██╗ ██║███████╗█████╗  ██╔██╗ ██║
+  ██║╚██╗██║██╔══██║██║╚██╗██║╚════██║██╔══╝  ██║╚██╗██║
+  ██║ ╚████║██║  ██║██║ ╚████║███████║███████╗██║ ╚████║
+  ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝╚══════╝╚═╝  ╚═══╝
+
+  ██████╗ ██████╗  █████╗  ██████╗██╗     ███████╗
+  ██╔═══██╗██╔══██╗██╔══██╗██╔════╝██║     ██╔════╝
+  ██║   ██║██████╔╝███████║██║     ██║     █████╗
+  ██║   ██║██╔══██╗██╔══██║██║     ██║     ██╔══╝
+  ╚██████╔╝██║  ██║██║  ██║╚██████╗███████╗███████╗
+   ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚══════╝╚══════╝
+
+  🔮 Polymarket × Smart Money Intelligence
+```
+
+**Data Modes:**
+
+| Mode | Command | Description |
+|------|---------|-------------|
+| 🔁 Replay (default) | `bash demo.sh` | Uses real recorded API data from `nansen-record.log` — no API key needed |
+| 🧪 Mock | `bash demo.sh mock` | Uses synthetic data for development |
+| 🔴 Live | `bash demo.sh live` | Hits the live Nansen API (requires `nansen auth login`) |
+
+You can also set the mode per-command:
+
+```bash
+# Replay mode — real recorded data, zero API calls
+NANSEN_REPLAY=true nansen-oracle scan --limit 10
+
+# Mock mode — synthetic test data
+NANSEN_MOCK=true nansen-oracle scan --limit 8
+
+# Live mode — real-time API (default when no env var is set)
+nansen-oracle scan
+```
+
+> 💡 **`nansen-record.log`** contains captured responses from a real Nansen API session. This enables high-fidelity demonstrations with actual Polymarket data (real markets, real whale addresses) without consuming API credits.
 
 ## Commands
 
