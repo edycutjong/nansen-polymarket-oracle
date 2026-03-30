@@ -2,9 +2,23 @@
  * Unit tests for the SM enrichment logic.
  */
 
-import { describe, it, expect } from 'vitest';
-import { isSmartMoney, summarizeLabels, filterSmartMoney } from '../src/lib/enricher.js';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { isSmartMoney, summarizeLabels, filterSmartMoney, enrichAddress, enrichHolders } from '../src/lib/enricher.js';
 import type { WalletLabel, SmartMoneyHolder } from '../src/types/smartmoney.js';
+import type { MarketHolder } from '../src/types/market.js';
+import { labelCache } from '../src/lib/cache.js';
+
+// Mock the nansen API calls
+vi.mock('../src/lib/nansen.js', () => ({
+  fetchProfilerLabels: vi.fn(),
+}));
+
+import { fetchProfilerLabels } from '../src/lib/nansen.js';
+
+beforeEach(() => {
+  vi.resetAllMocks();
+  labelCache.clear();
+});
 
 describe('isSmartMoney', () => {
   it('returns true for Fund label', () => {
@@ -117,3 +131,57 @@ describe('filterSmartMoney', () => {
     expect(filterSmartMoney(holders)).toHaveLength(0);
   });
 });
+
+describe('enrichAddress', () => {
+  it('returns empty labels if API fetch fails', async () => {
+    vi.mocked(fetchProfilerLabels).mockResolvedValue({ success: false, data: null });
+    const res = await enrichAddress('0xFAIL');
+    expect(res).toEqual({ labels: [], is_smart_money: false });
+  });
+
+  it('handles single-object responses from the API', async () => {
+    vi.mocked(fetchProfilerLabels).mockResolvedValue({
+      success: true,
+      data: { label: 'Fund' } as any,
+    });
+    const res = await enrichAddress('0xSINGLE');
+    expect(res.labels).toEqual([{ label: 'Fund' }]);
+    expect(res.is_smart_money).toBe(true);
+  });
+
+  it('handles array responses from the API', async () => {
+    vi.mocked(fetchProfilerLabels).mockResolvedValue({
+      success: true,
+      data: [{ label: 'DEX Trader' }, { label: 'Smart Trader' }] as any,
+    });
+    const res = await enrichAddress('0xARRAY');
+    expect(res.labels).toEqual([{ label: 'DEX Trader' }, { label: 'Smart Trader' }]);
+    expect(res.is_smart_money).toBe(true);
+  });
+});
+
+describe('enrichHolders', () => {
+  it('enriches a batch of holders and respects concurrency', async () => {
+    const holders: MarketHolder[] = [
+      { address: '0x1', position: 'YES', shares: 100, value_usd: 1000, entry_price: 0.5, pnl_usd: 100 },
+      { address: '0x2', position: 'NO', shares: 200, value_usd: 2000, entry_price: 0.6, pnl_usd: 200 },
+    ];
+
+    vi.mocked(fetchProfilerLabels).mockImplementation(async (address) => {
+      if (address === '0x1') return { success: true, data: [{ label: 'Fund' }] as any };
+      return { success: false, data: null };
+    });
+
+    const enriched = await enrichHolders(holders, 'ethereum', 1);
+
+    expect(enriched).toHaveLength(2);
+    expect(enriched[0].address).toBe('0x1');
+    expect(enriched[0].is_smart_money).toBe(true);
+    expect(enriched[0].label_summary).toBe('Fund');
+
+    expect(enriched[1].address).toBe('0x2');
+    expect(enriched[1].is_smart_money).toBe(false);
+    expect(enriched[1].label_summary).toBe('Unknown');
+  });
+});
+
