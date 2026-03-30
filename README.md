@@ -103,9 +103,12 @@ NANSEN_MOCK=true nansen-oracle scan --limit 8
 
 # Live mode — real-time API (default when no env var is set)
 nansen-oracle scan
+
+# Record mode — perform live API calls AND record the raw JSON output
+NANSEN_RECORD=true nansen-oracle scan --limit 5
 ```
 
-> 💡 **`nansen-record.log`** contains captured responses from a real Nansen API session. This enables high-fidelity demonstrations with actual Polymarket data (real markets, real whale addresses) without consuming API credits.
+> 💡 **`nansen-record.log`** contains captured responses from a real Nansen API session. This enables high-fidelity demonstrations with actual Polymarket data (real markets, real whale addresses) without consuming API credits. You can generate your own recordings by running any command with `NANSEN_RECORD=true`.
 
 ## Screenshots
 
