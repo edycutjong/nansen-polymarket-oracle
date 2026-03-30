@@ -2,14 +2,12 @@
  * Nansen CLI wrapper — evolved from NansenTerm's lib/nansen.ts.
  * Executes nansen-cli commands via child_process and parses JSON output.
  *
- * Key differences from NansenTerm:
- * - No mock mode (we need real data for the challenge)
- * - Added prediction-market specific wrappers
- * - Added profiler batch support
- * - Better error handling with typed responses
+ * Supports NANSEN_MOCK=true for local dev/testing without live API.
+ * Added prediction-market specific wrappers + profiler batch support.
  */
 
 import { execFile } from 'node:child_process';
+import { IS_MOCK, getMockData } from './mock.js';
 
 // ---------------------------------------------------------------------------
 // Core Types
@@ -55,6 +53,20 @@ export function execNansen<T = unknown>(
 ): Promise<NansenResponse<T>> {
   apiCallCount++;
   const { timeout = 60_000 } = options;
+
+  // Mock mode — return synthetic data without CLI call
+  if (IS_MOCK) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const mock = getMockData(command, args);
+        if (mock !== null) {
+          resolve({ success: true, data: mock as T });
+        } else {
+          resolve({ success: false, error: '[MOCK] No data for: ' + command });
+        }
+      }, 300);
+    });
+  }
 
   return new Promise((resolve) => {
     const fullArgs = [...command.split(' '), ...args, '--pretty'];
@@ -239,8 +251,9 @@ export async function fetchSmartMoneyHoldings(chain: string, limit = 20) {
 // Utility
 // ---------------------------------------------------------------------------
 
-/** Check if nansen CLI is available */
+/** Check if nansen CLI is available (always true in mock mode) */
 export async function checkNansenInstalled(): Promise<boolean> {
+  if (IS_MOCK) return true;
   return new Promise((resolve) => {
     execFile('nansen', ['--version'], { timeout: 5000 }, (error) => {
       resolve(!error);
