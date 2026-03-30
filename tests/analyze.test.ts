@@ -82,6 +82,7 @@ describe('Analyze Command', () => {
       success: true,
       data: [
         { address: '0x1', side: 'BUY', outcome: 'YES', value_usd: '500', timestamp: '2023-01-01' },
+        { address: '0x1', side: 'SELL', outcome: 'NO', timestamp: '2023-01-02' }, // Missing value_usd
         { address: '0x2', side: 'SELL' } // Non-SM trade
       ]
     });

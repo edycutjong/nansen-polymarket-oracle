@@ -67,9 +67,7 @@ export async function analyzeCommand(options: AnalyzeOptions): Promise<void> {
     return;
   }
 
-  const holders: MarketHolder[] = Array.isArray(holdersResult.data)
-    ? (holdersResult.data as MarketHolder[])
-    : [];
+  const holders = holdersResult.data as MarketHolder[];
 
   holderSpinner.succeed(`Found ${holders.length} holders`);
 

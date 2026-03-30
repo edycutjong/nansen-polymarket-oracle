@@ -42,9 +42,7 @@ export async function scanCommand(options: ScanOptions): Promise<MarketAnalysis[
     return [];
   }
 
-  let markets: PredictionMarket[] = Array.isArray(marketsResult.data)
-    ? (marketsResult.data as PredictionMarket[])
-    : [];
+  let markets: PredictionMarket[] = (marketsResult.data || []) as PredictionMarket[];
 
   // Filter by minimum volume
   if (minVolume > 0) {
@@ -86,9 +84,7 @@ export async function scanCommand(options: ScanOptions): Promise<MarketAnalysis[
         continue;
       }
 
-      const holders: MarketHolder[] = Array.isArray(holdersResult.data)
-        ? (holdersResult.data as MarketHolder[])
-        : [];
+      const holders: MarketHolder[] = holdersResult.data as MarketHolder[];
 
       if (holders.length === 0) {
         progressSpinner.warn(`Skipped: ${label} (0 holders)`);

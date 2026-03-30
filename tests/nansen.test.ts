@@ -73,6 +73,27 @@ describe('Nansen API wrappers', () => {
       expect(res.success).toBe(false);
       expect(res.error).toBe('rate limit');
       expect(res.code).toBe('429');
+      expect(res.code).toBe('429');
+      expect(res.status).toBe(429);
+    });
+
+    it('handles exec limits/timeouts with stderr parsed JSON (non-mock mode) missing error prop', async () => {
+      vi.mocked(cp.execFile).mockImplementation((...args: any[]) => {
+        const callback = args[args.length - 1];
+        callback(new Error('timeout-message'), '', JSON.stringify({ code: '429', status: 429 }));
+        return {} as any;
+      });
+
+      const prev = (nansen as any).IS_MOCK;
+      (nansen as any).IS_MOCK = false;
+
+      const res = await nansen.execNansen('test cmd');
+
+      (nansen as any).IS_MOCK = prev;
+
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('timeout-message');
+      expect(res.code).toBe('429');
       expect(res.status).toBe(429);
     });
 

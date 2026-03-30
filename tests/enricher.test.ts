@@ -93,6 +93,11 @@ describe('summarizeLabels', () => {
     const labels: WalletLabel[] = [{ label: 'Fund' }];
     expect(summarizeLabels(labels)).toBe('Fund');
   });
+
+  it('falls back to label when fullname is absent in non-SM labels', () => {
+    const labels: WalletLabel[] = [{ label: 'Random' }];
+    expect(summarizeLabels(labels)).toBe('Random');
+  });
 });
 
 describe('filterSmartMoney', () => {

@@ -57,6 +57,13 @@ describe('Scan Command', () => {
       category: 'Politics',
       outcomes: ['A', 'B'],
       outcome_prices: [0.5, 0.5],
+    },
+    {
+      market_id: 'm3',
+      question: 'Missing category market',
+      volume_usd: 100,
+      outcomes: ['A', 'B'],
+      outcome_prices: [0.5, 0.5],
     }
   ];
 
@@ -72,7 +79,7 @@ describe('Scan Command', () => {
     vi.mocked(nansen.fetchMarketScreener).mockResolvedValue({ success: true, data: mockMarkets });
 
     // filter by category that doesn't exist
-    const res = await scanCommand({ category: 'Sports', minVolume: '2000' });
+    const res = await scanCommand({ category: 'Sports', minVolume: '0' });
     expect(res).toEqual([]);
   });
 
@@ -115,22 +122,22 @@ describe('Scan Command', () => {
     // m1 will have smart money
     vi.mocked(nansen.fetchTopHolders).mockResolvedValueOnce({
       success: true,
-      data: [{ address: '0x1', amount: 100, outcome: 'YES' }],
+      data: [{ address: '0x1', shares: 100, position: 'YES' } as any],
     });
     vi.mocked(enricher.enrichHolders).mockResolvedValueOnce([
-      { address: '0x1', amount: 100, outcome: 'YES', sm_labels: ['Smart DEX Trader'] }
+      { address: '0x1', shares: 100, position: 'YES', sm_labels: ['Smart DEX Trader'] } as any
     ]);
     vi.mocked(enricher.filterSmartMoney).mockReturnValueOnce([
-      { address: '0x1', amount: 100, outcome: 'YES', sm_labels: ['Smart DEX Trader'] }
+      { address: '0x1', shares: 100, position: 'YES', sm_labels: ['Smart DEX Trader'] } as any
     ]);
 
     // m2 will have no smart money
     vi.mocked(nansen.fetchTopHolders).mockResolvedValueOnce({
       success: true,
-      data: [{ address: '0x2', amount: 200, outcome: 'A' }],
+      data: [{ address: '0x2', shares: 200, position: 'A' } as any],
     });
     vi.mocked(enricher.enrichHolders).mockResolvedValueOnce([
-      { address: '0x2', amount: 200, outcome: 'A', sm_labels: [] }
+      { address: '0x2', shares: 200, position: 'A', sm_labels: [] } as any
     ]);
     vi.mocked(enricher.filterSmartMoney).mockReturnValueOnce([]);
 

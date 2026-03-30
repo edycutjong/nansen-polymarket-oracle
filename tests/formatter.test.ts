@@ -151,4 +151,18 @@ describe('Formatter', () => {
     expect(md).toContain('bearish');
     expect(md).toContain('Top SM Holder');
   });
+
+  it('printScanTable and generateMarkdownReport short question', () => {
+    const shortAnalysis = { ...mockAnalysis, market: { ...mockAnalysis.market, question: 'Short?' } };
+    printScanTable([shortAnalysis]);
+    const md = generateMarkdownReport({
+      generated_at: new Date(1700000000000).toISOString(),
+      total_markets_scanned: 1,
+      total_api_calls: 1,
+      alerts: [],
+      analyses: [shortAnalysis],
+      sm_leaderboard: []
+    });
+    expect(md).toContain('Short?');
+  });
 });

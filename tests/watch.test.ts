@@ -117,6 +117,7 @@ describe('Watch Command', () => {
   it('completes the full loop and detects divergence shift', async () => {
     const mockMarket = {
       market_id: 'm1',
+      market_slug: 'm1-slug',
       outcomes: ['Y', 'N'],
       outcome_prices: [0.5, 0.5]
     };
@@ -133,6 +134,10 @@ describe('Watch Command', () => {
       .mockResolvedValueOnce({
         success: true,
         data: [{ address: '0x1', amount: 900, outcome: 'Y' } as any]
+      })
+      .mockResolvedValue({
+        success: true,
+        data: [{ address: '0x1', amount: 50, outcome: 'Y' } as any]
       });
 
     vi.mocked(enricher.enrichHolders).mockResolvedValue([
@@ -145,13 +150,19 @@ describe('Watch Command', () => {
       ])
       .mockReturnValueOnce([
         { address: '0x1', amount: 9000, outcome: 'Y', sm_labels: ['Smart DEX Trader'] } as any
+      ])
+      .mockReturnValue([
+        { address: '0x1', amount: 50, outcome: 'Y', sm_labels: ['Smart DEX Trader'] } as any
       ]);
 
-    vi.mocked(analyzer.analyzeMarket).mockReturnValueOnce({ divergence_score: 5 } as any);
-    vi.mocked(analyzer.analyzeMarket).mockReturnValueOnce({ divergence_score: 15 } as any);
+    vi.mocked(analyzer.analyzeMarket)
+      .mockReturnValueOnce({ divergence_score: 5 } as any)
+      .mockReturnValueOnce({ divergence_score: 15 } as any)
+      .mockReturnValue({ divergence_score: -5 } as any);
 
     // First scan happens automatically in watchCommand()
-    await watchCommand({ marketId: 'm1' });
+    // Test slug matching
+    await watchCommand({ marketId: 'm1-slug' });
     
     expect(formatter.printMarketDetail).toHaveBeenCalledTimes(1);
 
@@ -162,5 +173,10 @@ describe('Watch Command', () => {
     expect(formatter.printMarketDetail).toHaveBeenCalledTimes(2);
     // Because difference is >= 5, warn should be called with delta
     expect(mockWarn).toHaveBeenCalledWith(expect.stringContaining('Divergence shifted'));
+
+    // Trigger 3rd scan for negative delta
+    await intervalCallback();
+    expect(formatter.printMarketDetail).toHaveBeenCalledTimes(3);
+    expect(mockWarn).toHaveBeenCalledWith(expect.stringContaining('Divergence shifted -20 pts!'));
   });
 });

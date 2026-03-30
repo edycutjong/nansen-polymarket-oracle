@@ -66,9 +66,7 @@ export async function watchCommand(options: WatchOptions): Promise<void> {
         return;
       }
 
-      const holders: MarketHolder[] = Array.isArray(holdersResult.data)
-        ? (holdersResult.data as MarketHolder[])
-        : [];
+      const holders = holdersResult.data as MarketHolder[];
 
       const enriched = await enrichHolders(holders, chain, 3);
       const smHolders = filterSmartMoney(enriched);

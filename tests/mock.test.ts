@@ -11,6 +11,13 @@ describe('getMockData', () => {
     expect(data).toBeInstanceOf(Array);
     const markets = data as Array<Record<string, unknown>>;
     expect(markets.length).toBeLessThanOrEqual(5);
+
+    const defaultData = getMockData('research prediction-market market-screener', []);
+    expect((defaultData as any[]).length).toBe(12);
+
+    const noValueLimit = getMockData('research prediction-market market-screener', ['--limit']);
+    expect((noValueLimit as any[]).length).toBe(12);
+
     expect(markets[0]).toHaveProperty('market_id');
     expect(markets[0]).toHaveProperty('question');
     expect(markets[0]).toHaveProperty('yes_price');
@@ -26,6 +33,13 @@ describe('getMockData', () => {
     expect(holders[0]).toHaveProperty('address');
     expect(holders[0]).toHaveProperty('position');
     expect(holders[0]).toHaveProperty('value_usd');
+
+    // Test different yesPrice branches in generateTopHolders
+    getMockData('research prediction-market top-holders', ['--market-id', 'pm_eth_4k']); // low yes price < 0.4
+    getMockData('research prediction-market top-holders', ['--market-id', 'pm_sol_200']); // high yes price > 0.7
+    getMockData('research prediction-market top-holders', ['--market-id', 'pm_cb_listing']); // medium price
+    getMockData('research prediction-market top-holders', ['--market-id']); // missing arg
+    getMockData('research prediction-market top-holders', []); // missing --market-id entirely
   });
 
   it('returns profiler labels for SM wallets', () => {
@@ -38,19 +52,22 @@ describe('getMockData', () => {
     expect(labels.length).toBeGreaterThan(0);
     expect(labels[0]).toHaveProperty('label');
     expect(labels[0].label).toBe('Fund');
+
+    // Test missing Address argument
+    expect(getMockData('research profiler labels', ['--address'])).toBeInstanceOf(Array);
+    expect(getMockData('research profiler labels', [])).toBeInstanceOf(Array);
   });
 
   it('returns empty labels for unknown addresses', () => {
-    const data = getMockData('research profiler labels', [
-      '--address', '0x0000000000000000000000000000000000000000',
-    ]);
-    // Could be empty array or array with non-SM label
-    expect(data).toBeInstanceOf(Array);
-    const labels = data as Array<Record<string, unknown>>;
-    // Non-SM wallets: either [] or a non-SM label
-    if (labels.length > 0) {
-      expect(labels[0].label).not.toBe('Fund');
-    }
+    const origRandom = Math.random;
+    Math.random = () => 0.5;
+    expect(getMockData('research profiler labels', ['--address', '0x1111222233334444555566667777888899990000'])).toEqual([]);
+    
+    // Also cover the random branch in labels
+    Math.random = () => 0.8;
+    const randomLabels = getMockData('research profiler labels', ['--address', '0xunknown']) as any[];
+    expect(randomLabels[0]).toHaveProperty('category', 'Activity');
+    Math.random = origRandom;
   });
 
   it('returns event screener data', () => {
