@@ -99,4 +99,76 @@ describe('getMockData', () => {
     expect(data).toHaveProperty('tier');
     expect(data).toHaveProperty('credits_remaining');
   });
+
+  it('generateMarketOHLCV', () => {
+    const data = getMockData('polymarket ohlcv pm_1') as any[];
+    expect(Array.isArray(data)).toBe(true);
+    if (data.length > 0) {
+      expect(data[0]).toHaveProperty('timestamp');
+      expect(data[0]).toHaveProperty('open');
+      expect(data[0]).toHaveProperty('high');
+      expect(data[0]).toHaveProperty('low');
+      expect(data[0]).toHaveProperty('close');
+      expect(data[0]).toHaveProperty('volume');
+    }
+  });
+
+  it('generateOrderbook', () => {
+    const data = getMockData('polymarket orderbook pm_1') as any;
+    expect(data).toHaveProperty('bids');
+    expect(data).toHaveProperty('asks');
+    expect(Array.isArray(data.bids)).toBe(true);
+    expect(Array.isArray(data.asks)).toBe(true);
+  });
+
+  it('generatePnlByAddress', () => {
+    const data = getMockData('polymarket pnl-by-address 0x123') as any[];
+    expect(Array.isArray(data)).toBe(true);
+    if (data.length > 0) {
+      expect(data[0]).toHaveProperty('address');
+      expect(data[0]).toHaveProperty('realized_pnl_usd');
+    }
+  });
+
+  it('generateTradesByAddress', () => {
+    const data = getMockData('polymarket trades-by-address 0x123') as any[];
+    expect(Array.isArray(data)).toBe(true);
+    if (data.length > 0) {
+      expect(data[0]).toHaveProperty('address');
+      expect(data[0]).toHaveProperty('side');
+    }
+  });
+
+  it('generatePositionDetail', () => {
+    const data = getMockData('polymarket position-detail pm_1') as any;
+    expect(data).toHaveProperty('total_holders');
+    expect(data).toHaveProperty('yes_holders');
+    expect(data).toHaveProperty('holders');
+  });
+
+  it('generateCategories', () => {
+    const data = getMockData('polymarket categories') as any[];
+    expect(Array.isArray(data)).toBe(true);
+    if (data.length > 0) {
+      expect(data[0]).toHaveProperty('slug');
+      expect(data[0]).toHaveProperty('name');
+    }
+  });
+
+  it('generateSmartMoneyNetflow / holdings', () => {
+    const flowData = getMockData('smart-money netflow') as any[];
+    const holdData = getMockData('smart-money holdings') as any[];
+    expect(Array.isArray(flowData)).toBe(true);
+    expect(Array.isArray(holdData)).toBe(true);
+    if (flowData.length > 0) {
+      expect(flowData[0]).toHaveProperty('token_symbol');
+      expect(flowData[0]).toHaveProperty('net_flow_24h_usd');
+    }
+  });
+
+  it('generateAccount', () => {
+    const data = getMockData('account') as any;
+    expect(data).toHaveProperty('email');
+    expect(data).toHaveProperty('tier');
+  });
 });
