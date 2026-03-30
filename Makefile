@@ -1,4 +1,4 @@
-.PHONY: all install dev build clean test coverage lint start
+.PHONY: all install dev build clean test coverage typecheck start
 
 # Default target
 all: install build
@@ -27,9 +27,9 @@ test:
 coverage:
 	npm run test:coverage
 
-# Run TypeScript compilation checks as a linter
-lint:
-	npm run lint
+# Run TypeScript compilation checks
+typecheck:
+	npm run typecheck
 
 # Run the built CLI (e.g. `make start ARGS="analyze m1"`)
 start:
