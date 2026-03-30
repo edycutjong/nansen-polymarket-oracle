@@ -234,6 +234,10 @@ src/
 
 ## Nansen CLI Endpoints Used (15+)
 
+<p align="center">
+  <img src="docs/screenshots/nansen-usage-analytic.png" alt="Nansen API Usage Analytics" width="720" />
+</p>
+
 | # | Endpoint | Purpose |
 |---|----------|---------|
 | 1 | `research prediction-market market-screener` | Discover active markets |
