@@ -16,6 +16,13 @@
 
 ### 🔮 Smart Money × Prediction Market Intelligence
 
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Node 20](https://img.shields.io/badge/node-20-brightgreen)](https://nodejs.org/)
+[![Node 22](https://img.shields.io/badge/node-22-brightgreen)](https://nodejs.org/)
+[![Node 24](https://img.shields.io/badge/node-24-brightgreen)](https://nodejs.org/)
+[![Tests](https://img.shields.io/badge/tests-128%20passing-success)](https://github.com/edycutjong/nansen-polymarket-oracle)
+[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/edycutjong/nansen-polymarket-oracle)
+
 > *"Don't bet against Smart Money. See what they see."*
 
 Cross-reference on-chain whale positions with prediction market odds to identify mispriced outcomes.
@@ -299,6 +306,12 @@ All files          |     100 |      100 |     100 |     100 |
 | **Usefulness** | Directly actionable: "SM says this market is mispriced, here's why" |
 | **Technical Depth** | 15+ endpoints, cross-referencing, divergence algorithm, 100% test coverage |
 | **Presentation** | Output IS the pitch — "SM bets $7.9M that BTC hits $200K" |
+
+---
+
+## 📄 License
+
+[MIT](LICENSE) © [edycutjong](https://github.com/edycutjong)
 
 ---
 
