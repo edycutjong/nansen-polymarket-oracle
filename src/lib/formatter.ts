@@ -13,14 +13,15 @@ import type { MarketAnalysis, OracleReport, DivergenceLevel } from '../types/rep
 const colors: Record<DivergenceLevel, (text: string) => string> = {
   EXTREME: chalk.red.bold,
   HIGH: chalk.yellow.bold,
-  MODERATE: chalk.blue,
+  MODERATE: chalk.blueBright,
   LOW: chalk.green,
   ALIGNED: chalk.gray,
 };
 
 function colorScore(score: number, level: DivergenceLevel, width: number = 0): string {
   const prefix = score > 0 ? '+' : '';
-  const text = width > 0 ? padEnd(`${prefix}${score}`, width) : `${prefix}${score}`;
+  const valStr = `${prefix}${score}`.padStart(4, ' ');
+  const text = width > 0 ? padEnd(valStr, width) : valStr;
   return colors[level](text);
 }
 
@@ -32,7 +33,7 @@ function emoji(level: DivergenceLevel): string {
 }
 
 export function formatPercent(value: number): string {
-  return `${Math.round(value * 100)}%`;
+  return `${Math.round(value * 100)}%`.padStart(4, ' ');
 }
 
 export function formatCurrency(value: number): string {
@@ -56,19 +57,19 @@ function truncAddr(address: string): string {
 export function printScanTable(analyses: MarketAnalysis[]): void {
   console.log('');
   console.log(chalk.cyan.bold('🔮 Nansen Polymarket Oracle — Scan Results'));
-  console.log(chalk.gray('─'.repeat(90)));
+  console.log(chalk.gray('─'.repeat(100)));
   console.log(
     chalk.gray(
       padEnd('Market', 40) +
-      padEnd('Odds', 8) +
-      padEnd('SM Pos', 10) +
+      padEnd('Odds', 10) +
+      padEnd('SM Pos', 12) +
       padEnd('Diverg.', 10) +
       padEnd('SM $', 10) +
       padEnd('SM #', 6) +
-      'Level'
+      padEnd('Level', 12)
     ),
   );
-  console.log(chalk.gray('─'.repeat(90)));
+  console.log(chalk.gray('─'.repeat(100)));
 
   for (const a of analyses) {
     const question = a.market.question.length > 38
@@ -77,8 +78,8 @@ export function printScanTable(analyses: MarketAnalysis[]): void {
 
     console.log(
       padEnd(question, 40) +
-      padEnd(formatPercent(a.market.yes_price) + ' YES', 8) +
-      padEnd(formatPercent(a.sm_yes_ratio) + ' YES', 10) +
+      padEnd(formatPercent(a.market.yes_price) + ' YES', 10) +
+      padEnd(formatPercent(a.sm_yes_ratio) + ' YES', 12) +
       colorScore(a.divergence_score, a.divergence_level, 10) +
       padEnd(formatCurrency(a.sm_total_capital_usd), 10) +
       padEnd(String(a.sm_holder_count), 6) +
@@ -86,7 +87,7 @@ export function printScanTable(analyses: MarketAnalysis[]): void {
     );
   }
 
-  console.log(chalk.gray('─'.repeat(90)));
+  console.log(chalk.gray('─'.repeat(100)));
   console.log('');
 }
 
