@@ -144,7 +144,7 @@ export function printTelemetryReceipt(): void {
   const all = getEntries();
   if (all.length === 0) return;
 
-  const width = 96;
+  const width = 98;
   const divider = '─'.repeat(width);
 
   console.log('');
@@ -160,7 +160,7 @@ export function printTelemetryReceipt(): void {
     padEnd('Status', 10) +
     padEnd('Cache', 8) +
     padEnd('Role', 16);
-  console.log(chalk.cyan('│') + ' ' + chalk.gray(header) + chalk.cyan('│'));
+  console.log(chalk.cyan('│') + ' ' + chalk.gray(header) + ' ' + chalk.cyan('│'));
   console.log(chalk.cyan('│') + ' ' + chalk.gray(divider.slice(0, width - 4)) + ' ' + chalk.cyan('│'));
 
   // Entries
@@ -181,7 +181,7 @@ export function printTelemetryReceipt(): void {
       statusColor(padEnd(e.status, 10)) +
       cacheColor(padEnd(e.cache, 8)) +
       padEnd(e.role, 16);
-    console.log(chalk.cyan('│') + ' ' + row + chalk.cyan('│'));
+    console.log(chalk.cyan('│') + ' ' + row + ' ' + chalk.cyan('│'));
   }
 
   // Summary
@@ -189,7 +189,6 @@ export function printTelemetryReceipt(): void {
   const avgLatency = Math.round(all.reduce((sum, e) => sum + e.latency_ms, 0) / totalCalls);
   const errorCount = all.filter(e => e.status === 'ERROR').length;
   const cacheHits = all.filter(e => e.cache === 'HIT').length;
-  const verificationStatus = totalCalls >= 10 ? '✅' : '⚠️';
 
   console.log(chalk.cyan('├' + '─'.repeat(width - 2) + '┤'));
 
@@ -198,7 +197,7 @@ export function printTelemetryReceipt(): void {
     `  |  AVG LATENCY: ${chalk.white(avgLatency + 'ms')}` +
     `  |  CACHE HITS: ${chalk.green(String(cacheHits))}` +
     `  |  ERRORS: ${errorCount > 0 ? chalk.red(String(errorCount)) : chalk.green('0')}` +
-    `  |  10+ CALLS: ${verificationStatus}`;
+    `  |  10+ CALLS: ${totalCalls >= 10 ? chalk.green('PASS') : chalk.yellow('WARN')}`;
 
   // Strip ANSI for measuring, then pad with spaces
   // eslint-disable-next-line no-control-regex
