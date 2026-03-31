@@ -494,6 +494,100 @@ const generateAccount = () => ({
   credits_reset_at: new Date(Date.now() + 86_400_000).toISOString(),
 });
 
+// ─── Trading Mock Data ───
+
+const generateWalletStatus = (args: string[]) => {
+  const chain = getArgValue(args, '--chain') || 'base';
+  return {
+    address: '0xTRADER' + randomHex(34),
+    chain,
+    balance_native: 0.5,
+    balance_usd: 1250.00,
+    exists: true,
+  };
+};
+
+const generateWalletCreate = (args: string[]) => {
+  const chain = getArgValue(args, '--chain') || 'base';
+  return {
+    address: '0xNEW' + randomHex(36),
+    chain,
+    balance_native: 0,
+    balance_usd: 0,
+    exists: true,
+  };
+};
+
+const generateTokenInfo = (args: string[]) => {
+  const symbol = getArgValue(args, '--symbol') || 'WETH';
+  const chain = getArgValue(args, '--chain') || 'base';
+  const prices: Record<string, number> = {
+    WETH: 3450.00,
+    USDC: 1.00,
+    USDT: 1.00,
+    WBTC: 67500.00,
+  };
+  return {
+    symbol,
+    name: symbol === 'WETH' ? 'Wrapped Ether' : symbol === 'USDC' ? 'USD Coin' : symbol,
+    address: '0xTOKEN' + randomHex(34),
+    chain,
+    price_usd: prices[symbol] ?? 100.00,
+    market_cap_usd: 415_000_000_000,
+    liquidity_usd: 850_000_000,
+    volume_24h_usd: 12_500_000_000,
+  };
+};
+
+const generateTradeQuote = (args: string[]) => {
+  const from = getArgValue(args, '--from') || 'USDC';
+  const to = getArgValue(args, '--to') || 'WETH';
+  const amount = parseFloat(getArgValue(args, '--amount') || '100');
+  const chain = getArgValue(args, '--chain') || 'base';
+  const ethPrice = 3450;
+  const expectedOut = to === 'WETH' ? amount / ethPrice : amount * ethPrice;
+  return {
+    from_token: from,
+    to_token: to,
+    chain,
+    amount_in: amount,
+    expected_out: parseFloat(expectedOut.toFixed(6)),
+    price_impact: 0.12,
+    route: `${from} → ${to} via Uniswap V3`,
+    gas_estimate_usd: 0.42,
+    expires_at: new Date(Date.now() + 30_000).toISOString(),
+  };
+};
+
+const generateTradeExecute = (args: string[]) => {
+  const from = getArgValue(args, '--from') || 'USDC';
+  const to = getArgValue(args, '--to') || 'WETH';
+  const amount = parseFloat(getArgValue(args, '--amount') || '100');
+  const chain = getArgValue(args, '--chain') || 'base';
+  const isDryRun = args.includes('--dry-run');
+  const ethPrice = 3450;
+  const amountOut = to === 'WETH' ? amount / ethPrice : amount * ethPrice;
+  return {
+    tx_hash: isDryRun ? '0xDRYRUN_' + randomHex(56) : '0x' + randomHex(64),
+    status: isDryRun ? 'pending' as const : 'success' as const,
+    from_token: from,
+    to_token: to,
+    amount_in: amount,
+    amount_out: parseFloat(amountOut.toFixed(6)),
+    chain,
+    gas_used_usd: isDryRun ? 0 : 0.38,
+    executed_at: new Date().toISOString(),
+  };
+};
+
+// ─── Arg Helper ───
+
+function getArgValue(args: string[], flag: string): string {
+  const idx = args.indexOf(flag);
+  if (idx === -1 || idx + 1 >= args.length) return '';
+  return args[idx + 1];
+}
+
 // ─── Router ───
 
 /**
@@ -522,6 +616,13 @@ export function getMockData(command: string, args: string[] = []): unknown | nul
   // Smart Money endpoints
   if (command.includes('smart-money netflow'))   return generateSmartMoneyNetflow(args);
   if (command.includes('smart-money holdings'))  return generateSmartMoneyNetflow(args);
+
+  // Trading endpoints
+  if (command.includes('wallet status'))     return generateWalletStatus(args);
+  if (command.includes('wallet create'))     return generateWalletCreate(args);
+  if (command.includes('token info'))        return generateTokenInfo(args);
+  if (command.includes('trade quote'))       return generateTradeQuote(args);
+  if (command.includes('trade execute'))     return generateTradeExecute(args);
 
   // Account
   if (command.includes('account'))           return generateAccount();
