@@ -188,4 +188,94 @@ describe('getMockData', () => {
     expect(data).toHaveProperty('email');
     expect(data).toHaveProperty('tier');
   });
+
+  it('generateWalletStatus', () => {
+    const data = getMockData('wallet status') as any;
+    expect(data).toHaveProperty('address');
+    expect(data).toHaveProperty('balance_usd');
+  });
+
+  it('generateMarketScreener handles args', () => {
+    // testing limit parsing
+    const data = getMockData('market-screener', ['--limit', '2']) as any[];
+    expect(data.length).toBe(2);
+  });
+
+  it('generateEventScreener', () => {
+    const data = getMockData('wallet create') as any;
+    expect(data).toHaveProperty('address');
+    expect(data).toHaveProperty('exists', true);
+  });
+
+  it('generateWalletCreate', () => {
+    const data = getMockData('wallet create') as any;
+    expect(data).toHaveProperty('address');
+    expect(data).toHaveProperty('exists', true);
+  });
+
+  it('generateTokenInfo', () => {
+    const data = getMockData('token info 0x123') as any;
+    expect(data).toHaveProperty('symbol');
+    expect(data).toHaveProperty('price_usd');
+  });
+
+  it('generateTokenInfo with args covers getArgValue success path', () => {
+    const data = getMockData('token info', ['--symbol', 'WBTC', '--chain', 'ethereum']) as any;
+    expect(data.symbol).toBe('WBTC');
+    expect(data.chain).toBe('ethereum');
+    expect(data.price_usd).toBe(67500);
+  });
+
+  it('generateTradeQuote', () => {
+    const data = getMockData('trade quote --amount 100') as any;
+    expect(data).toHaveProperty('expected_out');
+    expect(data).toHaveProperty('price_impact');
+  });
+
+  it('generateTradeExecute', () => {
+    const data = getMockData('trade execute --quote q1') as any;
+    expect(data).toHaveProperty('tx_hash');
+    expect(data.status).toBe('success');
+  });
+
+  // ─── Branch coverage for uncovered lines in mock.ts ───
+
+  it('generateTokenInfo covers USDC name branch', () => {
+    const data = getMockData('token info', ['--symbol', 'USDC']) as any;
+    expect(data.symbol).toBe('USDC');
+    expect(data.name).toBe('USD Coin');
+    expect(data.price_usd).toBe(1.00);
+  });
+
+  it('generateTokenInfo falls back to symbol as name for unknown tokens', () => {
+    const data = getMockData('token info', ['--symbol', 'DOGE']) as any;
+    expect(data.symbol).toBe('DOGE');
+    expect(data.name).toBe('DOGE');       // fallback: symbol itself
+    expect(data.price_usd).toBe(100.00);  // fallback: ?? 100.00
+  });
+
+  it('generateTradeQuote covers reverse direction (to !== WETH)', () => {
+    const data = getMockData('trade quote', ['--from', 'WETH', '--to', 'USDC', '--amount', '1']) as any;
+    expect(data.from_token).toBe('WETH');
+    expect(data.to_token).toBe('USDC');
+    // When to !== WETH, expected_out = amount * ethPrice (3450)
+    expect(data.expected_out).toBe(3450);
+  });
+
+  it('generateTradeExecute covers --dry-run branch', () => {
+    const data = getMockData('trade execute', ['--dry-run']) as any;
+    expect(data.tx_hash).toMatch(/^0xDRYRUN_/);
+    expect(data.status).toBe('pending');
+    expect(data.gas_used_usd).toBe(0);
+  });
+
+  it('generateTradeExecute covers reverse direction (to !== WETH)', () => {
+    const data = getMockData('trade execute', ['--from', 'WETH', '--to', 'USDC', '--amount', '1']) as any;
+    expect(data.from_token).toBe('WETH');
+    expect(data.to_token).toBe('USDC');
+    // When to !== WETH, amount_out = amount * ethPrice
+    expect(data.amount_out).toBe(3450);
+    expect(data.status).toBe('success');
+    expect(data.gas_used_usd).toBe(0.38);
+  });
 });
