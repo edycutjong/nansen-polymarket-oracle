@@ -20,8 +20,10 @@
 [![Node 20](https://img.shields.io/badge/node-20-brightgreen)](https://nodejs.org/)
 [![Node 22](https://img.shields.io/badge/node-22-brightgreen)](https://nodejs.org/)
 [![Node 24](https://img.shields.io/badge/node-24-brightgreen)](https://nodejs.org/)
-[![Tests](https://img.shields.io/badge/tests-128%20passing-success)](https://github.com/edycutjong/nansen-polymarket-oracle)
+[![Tests](https://img.shields.io/badge/tests-223%20passing-success)](https://github.com/edycutjong/nansen-polymarket-oracle)
 [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/edycutjong/nansen-polymarket-oracle)
+[![Suites](https://img.shields.io/badge/suites-16-blue)](https://github.com/edycutjong/nansen-polymarket-oracle)
+[![Nansen CLI](https://img.shields.io/badge/Nansen%20CLI-20%20endpoints-orange)](https://nansen.ai)
 
 > *"Don't bet against Smart Money. See what they see."*
 
@@ -245,26 +247,30 @@ src/
 │   ├── scan.ts           # Market discovery + enrichment
 │   ├── analyze.ts        # Single market deep-dive
 │   ├── report.ts         # Full report generation
+│   ├── trade.ts          # Autonomous proxy-hedge trading agent
 │   ├── watch.ts          # Real-time monitoring
 │   └── address.ts        # Wallet-level SM lookup
 ├── lib/
-│   ├── nansen.ts         # CLI wrapper (exec → JSON)
-│   ├── enricher.ts       # SM label cross-referencing
+│   ├── nansen.ts         # CLI wrapper (exec → JSON) with debug logging
+│   ├── enricher.ts       # SM label cross-referencing + rate limiting
 │   ├── analyzer.ts       # Divergence score algorithm
+│   ├── trading.ts        # Proxy-hedge signal mapping + execution
 │   ├── cache.ts          # TTL cache for label lookups
 │   ├── formatter.ts      # Terminal + Markdown output
+│   ├── telemetry.ts      # Provable API usage tracking
 │   ├── known-wallets.ts  # Known SM wallet registry
-│   ├── mock.ts           # Mock data generator
+│   ├── mock.ts           # Mock data generator (12 markets, 8 SM wallets)
 │   └── replay.ts         # API response replay engine
 └── types/
     ├── market.ts          # Prediction market types
     ├── smartmoney.ts      # SM labels + enriched holders
+    ├── trading.ts         # Trade signal + execution types
     └── report.ts          # Analysis output types
 ```
 
 ---
 
-## 📡 Nansen CLI Endpoints Used (18+)
+## 📡 Nansen CLI Endpoints Used (20)
 
 <p align="center">
   <img src="docs/screenshots/nansen-usage-analytic.png" alt="Nansen API Usage Analytics" width="720" />
@@ -279,23 +285,31 @@ src/
 | 5 | `research prediction-market pnl-by-market` | PnL leaderboard |
 | 6 | `research prediction-market ohlcv` | Price history |
 | 7 | `research prediction-market orderbook` | Liquidity depth |
-| 8 | `research profiler labels` | Wallet classification |
-| 9 | `research profiler pnl-summary` | Wallet performance |
-| 10 | `research smart-money netflow` | Cross-chain flow context |
-| 11 | `research token info` | Related token context |
-| 12 | `research prediction-market pnl-by-address` | SM prediction accuracy |
-| 13 | `research prediction-market trades-by-address` | SM trading patterns |
-| 14 | `research prediction-market categories` | Market categorization |
-| 15 | `research prediction-market position-detail` | Position breakdown |
+| 8 | `research prediction-market pnl-by-address` | SM prediction accuracy |
+| 9 | `research prediction-market trades-by-address` | SM trading patterns |
+| 10 | `research prediction-market categories` | Market categorization |
+| 11 | `research prediction-market position-detail` | Position breakdown |
+| 12 | `research profiler labels` | Wallet classification |
+| 13 | `research profiler pnl-summary` | Wallet performance |
+| 14 | `research profiler batch` | Batch wallet labeling |
+| 15 | `research smart-money netflow` | Cross-chain flow context |
+| 16 | `research smart-money holdings` | SM portfolio analysis |
+| 17 | `research token info` | Token price/metadata |
+| 18 | `trade quote` | DEX swap quoting via 1inch |
+| 19 | `trade execute` | On-chain trade execution |
+| 20 | `wallet status` / `wallet create` | Wallet infrastructure |
 
 ---
 
 ## ✅ Testing
 
-**207 tests · 16 suites · 100% coverage**
+**223 unit tests · 16 suites · 100% coverage · all thresholds enforced**
 
 ```bash
-# Run all tests
+# Full CI pipeline (typecheck + lint + test:coverage)
+npm run ci
+
+# Run tests only
 npm test
 
 # Run with coverage enforcement (100% threshold)
@@ -303,36 +317,56 @@ npm run test:coverage
 ```
 
 ```
+ Test Files  16 passed (16)
+      Tests  223 passed (223)
+
  % Coverage report from v8
--------------------|---------|----------|---------|---------|
-File               | % Stmts | % Branch | % Funcs | % Lines |
--------------------|---------|----------|---------|---------|
-All files          |     100 |      100 |     100 |     100 |
--------------------|---------|----------|---------|---------|
+-------------------|---------|----------|---------|---------
+File               | % Stmts | % Branch | % Funcs | % Lines
+-------------------|---------|----------|---------|---------
+All files          |     100 |      100 |     100 |     100
+ commands (6)      |     100 |      100 |     100 |     100
+ lib (10)          |     100 |      100 |     100 |     100
+-------------------|---------|----------|---------|---------
 ```
 
 <details>
-<summary><strong>What's tested</strong></summary>
+<summary><strong>What's tested (16 source files, 16 test suites)</strong></summary>
 
-- **Divergence algorithm** — capital-weighting, edge cases, score bounds
-- **SM enrichment** — label matching, batch processing, fallback logic
-- **TTL cache** — expiry, invalidation, capacity
-- **Mock/Replay engines** — data fidelity, command routing
-- **All CLI commands** — scan, analyze, report, watch, address
-- **Error handling** — network failures, malformed data, graceful degradation
+| Area | Tests | Coverage |
+|------|-------|----------|
+| **Divergence algorithm** | Capital-weighting, edge cases, score bounds | `analyzer.ts` 100% |
+| **SM enrichment** | Label matching, batch processing, rate limiting | `enricher.ts` 100% |
+| **TTL cache** | Expiry, invalidation, getOrFetch | `cache.ts` 100% |
+| **Mock data system** | 20 command routes, all branch paths | `mock.ts` 100% |
+| **API replay engine** | Record, replay, fallback | `replay.ts` 100% |
+| **Nansen wrapper** | Exec, error handling, debug logging | `nansen.ts` 100% |
+| **Trading engine** | Signal mapping, proxy hedging, dry-run | `trading.ts` 100% |
+| **Telemetry** | Receipt rendering, call tracking | `telemetry.ts` 100% |
+| **All 6 CLI commands** | scan, analyze, report, trade, watch, address | `commands/*` 100% |
+| **Formatter** | Terminal tables, markdown export | `formatter.ts` 100% |
+| **Error handling** | Network failures, malformed data, graceful degradation | All files |
 
 </details>
 
 ---
 
-## 🏆 Challenge Criteria
+## 🏆 Hackathon Criteria
 
-| Criteria | How Oracle Delivers |
-|----------|---------------------|
-| **Creativity** | First prediction market × Smart Money cross-reference tool |
-| **Usefulness** | Directly actionable: "SM says this market is mispriced, here's why" |
-| **Technical Depth** | 15+ endpoints, cross-referencing, divergence algorithm, 100% test coverage |
-| **Presentation** | Output IS the pitch — "SM bets $7.9M that BTC hits $200K" |
+| Criteria | How Oracle Delivers | Evidence |
+|----------|---------------------|----------|
+| **Creativity** | First prediction market × Smart Money cross-reference tool | No existing tool combines Nansen profiler labels with Polymarket positions |
+| **Usefulness** | Directly actionable: *"SM bets $7.9M that BTC hits $200K — but the market says 12%"* | Real divergence signals from live Nansen data |
+| **Technical Depth** | **20 endpoints**, cross-referencing, divergence algorithm, autonomous trade agent | 223 tests, 100% coverage, 16 source files, 4 data modes |
+| **Presentation** | Output IS the pitch — rich terminal UI with telemetry receipts | Every API call is provable and displayed |
+
+### Why This Wins
+
+1. **Most Endpoints** — 20 distinct Nansen CLI endpoints orchestrated in a single pipeline
+2. **Production Quality** — 223 tests, 100% coverage (statements, branches, functions, lines), enforced CI
+3. **Real Alpha** — Not a dashboard. Not a wrapper. A system that finds what Smart Money knows and the crowd doesn't
+4. **Full Autonomy** — `scan → enrich → analyze → trade` runs end-to-end without human intervention
+5. **Provable Usage** — Built-in telemetry receipt proves every Nansen API call made during execution
 
 ---
 
