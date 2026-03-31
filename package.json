@@ -1,6 +1,6 @@
 {
   "name": "nansen-oracle",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Smart Money × Prediction Market Intelligence — Cross-reference whale positions with market odds to find alpha",
   "type": "module",
   "main": "dist/index.js",

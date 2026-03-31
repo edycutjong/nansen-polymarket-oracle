@@ -57,18 +57,11 @@ When Smart Money conviction diverges significantly from market odds, it signals 
 
 ## 🎯 How It Works
 
-### Core Pipeline: `scan` → `enrich` → `analyze`
+### Core Pipeline: `scan` → `enrich` → `analyze` → `trade`
 
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   1. SCAN       │     │   2. ENRICH     │     │   3. ANALYZE    │
-│                 │     │                 │     │                 │
-│ Fetch active    │────▶│ Cross-reference │────▶│ Calculate SM    │
-│ prediction      │     │ holder wallets  │     │ Divergence      │
-│ markets via     │     │ against Nansen  │     │ Score           │
-│ Nansen CLI      │     │ profiler labels │     │ (-100 to +100)  │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-```
+<p align="center">
+  <img src="docs/core-pipeline.jpeg" alt="Core Pipeline Architecture" width="800" />
+</p>
 
 1. **Scan** — Fetches active prediction markets from Nansen CLI `research prediction-market` endpoints
 2. **Enrich** — Cross-references holder addresses against Nansen's `profiler labels` to identify Smart Money wallets (Funds, Smart Traders, 90D Traders, etc.)
@@ -76,6 +69,7 @@ When Smart Money conviction diverges significantly from market odds, it signals 
    - **Positive** = SM is more bullish than market odds
    - **Negative** = SM is more bearish than market odds
    - Markets with |score| ≥ 40 are flagged as **🔥 EXTREME** alpha opportunities
+4. **Trade** _(New in v2.0)_ — Automatically hedges identified Extreme divergence signals using 1inch integration (`trade execute`, `trade quote`) and on-chain infrastructure (`wallet create`, `wallet status`).
 
 ### The SM Divergence Score
 
@@ -97,6 +91,16 @@ function calculateDivergence(smHolders, allHolders, marketOdds):
 | ±10+ | 📊 MODERATE | Mild divergence |
 | <±10 | ✅ LOW/🤝 ALIGNED | SM agrees with market consensus |
 
+### 🛡️ Cross-Chain Proxy Hedging
+
+Polymarket is typically settled in USDC on Polygon. When the Oracle identifies an **EXTREME bullish divergence** (Smart Money strongly believes YES before the crowd), it can automatically execute a proxy hedge on Base L2.
+
+- **Bullish Output**: Borrows conviction from Smart Money to swap USDC → Target Asset (e.g., WETH for Crypto categories) to capture upside.
+- **Bearish Output**: Automatically scales out to stables (Target Asset → USDC) to protect capital.
+
+**Powered by Nansen CLI:**
+The Oracle natively integrates Nansen's `wallet status`/`wallet create`, `research token info`, `trade quote`, and `trade execute` endpoints to perform these actions entirely autonomously upon your approval.
+
 ---
 
 ## 📸 Screenshots
@@ -114,6 +118,16 @@ function calculateDivergence(smHolders, allHolders, marketOdds):
 ### Report — Alpha Export
 <p align="center">
   <img src="docs/screenshots/report-final.png" alt="Report Output" width="720" />
+</p>
+
+### Trade — Autonomous Agent Execution
+<p align="center">
+  <img src="docs/screenshots/trade-agent.png" alt="Trade Agent" width="720" />
+</p>
+
+### Telemetry — Provable API Usage
+<p align="center">
+  <img src="docs/screenshots/telemetry-receipt.png" alt="Telemetry Receipt" width="720" />
 </p>
 
 ---
@@ -179,6 +193,7 @@ NANSEN_RECORD=true nansen-oracle scan --limit 5
 | `scan` | Discover prediction markets ranked by SM divergence |
 | `analyze <id>` | Deep analysis of a specific market: holders, trades, PnL |
 | `report` | Full alpha report exported as Markdown or JSON |
+| `trade` | Autonomous agent that trades EXTREME mispricings via proxy hedge |
 | `watch <id>` | Live monitoring with Smart Money position change alerts |
 | `address <addr>` | Wallet-level SM lookup: labels, PnL, recent trades |
 
@@ -199,6 +214,12 @@ report:
   -f, --format <fmt>       Output: md, json, table (default: md)
   -o, --output <path>      File path for report
   -l, --limit <n>          Markets to include (default: 20)
+
+trade:
+  -a, --amount <usd>       Amount to trade per signal (USDC)
+  -m, --max-usd <usd>      Maximum total trade size limit (default 100)
+  -t, --threshold <score>  Minimum divergence score (default 40)
+  --live                   Execute live trades (default is dry-run)
 
 watch:
   -i, --interval <secs>    Refresh interval in seconds (default: 60)
@@ -237,7 +258,7 @@ src/
 
 ---
 
-## 📡 Nansen CLI Endpoints Used (15+)
+## 📡 Nansen CLI Endpoints Used (18+)
 
 <p align="center">
   <img src="docs/screenshots/nansen-usage-analytic.png" alt="Nansen API Usage Analytics" width="720" />
@@ -265,7 +286,7 @@ src/
 
 ## ✅ Testing
 
-**128 tests · 13 suites · 100% coverage**
+**207 tests · 16 suites · 100% coverage**
 
 ```bash
 # Run all tests

@@ -57,7 +57,7 @@ echo ""
 sleep 1
 
 # ─── 1. Scan ────────────────────────────────────────────────────────
-echo "━━━ 1/3: Scanning Active Markets ━━━"
+echo "━━━ 1/4: Scanning Active Markets ━━━"
 echo ""
 nansen-oracle scan --limit 10
 echo ""
@@ -72,19 +72,25 @@ else
   MARKET_LABEL="Will Curaçao win the 2026 FIFA World Cup?"
 fi
 
-echo "━━━ 2/3: Deep Analysis → '$MARKET_LABEL' ━━━"
+echo "━━━ 2/4: Deep Analysis → '$MARKET_LABEL' ━━━"
 echo ""
 nansen-oracle analyze "$MARKET_ID"
 echo ""
 
 # ─── 3. Report ──────────────────────────────────────────────────────
-echo "━━━ 3/3: Generating Alpha Report ━━━"
+echo "━━━ 3/4: Generating Alpha Report ━━━"
 echo ""
 nansen-oracle report --format md --output reports/demo-report.md --limit 10
 echo ""
 
+# ─── 4. Trade ───────────────────────────────────────────────────────
+echo "━━━ 4/4: Autonomous Trade Agent (Proxy Hedge) ━━━"
+echo ""
+nansen-oracle trade --amount 10
+echo ""
+
 echo "╔═══════════════════════════════════════════════════════════╗"
-echo "║  ✅ Demo Complete — All 3 commands executed successfully  ║"
+echo "║  ✅ Demo Complete — All 4 commands executed successfully  ║"
 echo "╚═══════════════════════════════════════════════════════════╝"
 echo ""
 echo "📄 Report saved: reports/demo-report.md"
