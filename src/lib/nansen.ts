@@ -11,6 +11,7 @@
 import { execFile } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
 import { IS_MOCK, getMockData } from './mock.js';
+import { recordCall, classifyRole } from './telemetry.js';
 import { IS_REPLAY, getReplayData } from './replay.js';
 
 // ---------------------------------------------------------------------------
@@ -57,15 +58,21 @@ export function execNansen<T = unknown>(
 ): Promise<NansenResponse<T>> {
   apiCallCount++;
   const { timeout = 60_000 } = options;
+  const fullCommand = `${command} ${args.join(' ')}`.trim();
+  const role = classifyRole(fullCommand);
+  const startTime = Date.now();
 
   // Mock mode — return synthetic data without CLI call
   if (IS_MOCK) {
     return new Promise((resolve) => {
       setTimeout(() => {
         const mock = getMockData(command, args);
+        const latency = Date.now() - startTime;
         if (mock !== null) {
+          recordCall({ endpoint: command, method: 'EXEC', latency_ms: latency, status: 'SUCCESS', cache: 'N/A', role });
           resolve({ success: true, data: mock as T });
         } else {
+          recordCall({ endpoint: command, method: 'EXEC', latency_ms: latency, status: 'ERROR', cache: 'N/A', role });
           resolve({ success: false, error: '[MOCK] No data for: ' + command });
         }
       }, 300);
@@ -77,9 +84,12 @@ export function execNansen<T = unknown>(
     return new Promise((resolve) => {
       setTimeout(() => {
         const replay = getReplayData(command, args);
+        const latency = Date.now() - startTime;
         if (replay !== null) {
+          recordCall({ endpoint: command, method: 'EXEC', latency_ms: latency, status: 'SUCCESS', cache: 'HIT', role });
           resolve({ success: true, data: replay as T });
         } else {
+          recordCall({ endpoint: command, method: 'EXEC', latency_ms: latency, status: 'ERROR', cache: 'MISS', role });
           resolve({ success: false, error: '[REPLAY] No recorded data for: ' + command + ' ' + args.join(' ') });
         }
       }, 150); // faster than mock — simulates cached lookups
@@ -94,8 +104,10 @@ export function execNansen<T = unknown>(
       fullArgs,
       { maxBuffer: 10 * 1024 * 1024, timeout },
       (error, stdout, stderr) => {
+        const latency = Date.now() - startTime;
         if (error) {
           const errorText = stderr || stdout || error.message;
+          recordCall({ endpoint: command, method: 'EXEC', latency_ms: latency, status: 'ERROR', cache: 'MISS', role });
           try {
             const parsed = JSON.parse(errorText);
             resolve({
@@ -128,8 +140,10 @@ export function execNansen<T = unknown>(
             parsed.data = parsed.data.data;
           }
 
+          recordCall({ endpoint: command, method: 'EXEC', latency_ms: latency, status: '200', cache: 'MISS', role });
           resolve(parsed as NansenResponse<T>);
         } catch {
+          recordCall({ endpoint: command, method: 'EXEC', latency_ms: latency, status: 'ERROR', cache: 'MISS', role });
           resolve({
             success: false,
             error: `Failed to parse JSON: ${stdout.slice(0, 200)}`,

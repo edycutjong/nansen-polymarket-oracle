@@ -19,7 +19,9 @@ import { analyzeCommand } from './commands/analyze.js';
 import { reportCommand } from './commands/report.js';
 import { watchCommand } from './commands/watch.js';
 import { addressCommand } from './commands/address.js';
+import { tradeCommand } from './commands/trade.js';
 import { checkNansenInstalled, resetApiCallCount } from './lib/nansen.js';
+import { resetTelemetry, printTelemetryReceipt } from './lib/telemetry.js';
 
 const program = new Command();
 
@@ -29,7 +31,7 @@ program
     '🔮 Smart Money × Prediction Market Intelligence\n' +
     'Cross-reference whale positions with market odds to find alpha.',
   )
-  .version('1.0.0');
+  .version('2.0.0');
 
 // ─── scan ─────────────────────────────────────────────────────────────────────
 program
@@ -42,7 +44,9 @@ program
   .action(async (options) => {
     await ensureNansen();
     resetApiCallCount();
+    resetTelemetry();
     await scanCommand(options);
+    printTelemetryReceipt();
   });
 
 // ─── analyze ──────────────────────────────────────────────────────────────────
@@ -53,7 +57,9 @@ program
   .action(async (marketId: string, options) => {
     await ensureNansen();
     resetApiCallCount();
+    resetTelemetry();
     await analyzeCommand({ marketId, ...options });
+    printTelemetryReceipt();
   });
 
 // ─── report ───────────────────────────────────────────────────────────────────
@@ -69,7 +75,9 @@ program
   .action(async (options) => {
     await ensureNansen();
     resetApiCallCount();
+    resetTelemetry();
     await reportCommand(options);
+    printTelemetryReceipt();
   });
 
 // ─── watch ────────────────────────────────────────────────────────────────────
@@ -81,7 +89,9 @@ program
   .action(async (marketId: string, options) => {
     await ensureNansen();
     resetApiCallCount();
+    resetTelemetry();
     await watchCommand({ marketId, ...options });
+    printTelemetryReceipt();
   });
 
 // ─── address ──────────────────────────────────────────────────────────────────
@@ -91,7 +101,29 @@ program
   .action(async (address) => {
     await ensureNansen();
     resetApiCallCount();
+    resetTelemetry();
     await addressCommand(address);
+    printTelemetryReceipt();
+  });
+
+// ─── trade ────────────────────────────────────────────────────────────────────
+program
+  .command('trade')
+  .description('Cross-chain proxy hedge based on SM divergence signals')
+  .option('-a, --amount <usd>', 'Trade amount in USD', '10')
+  .option('--chain <chain>', 'Chain for trading (base, solana)', 'base')
+  .option('--no-dry-run', 'Execute live trade (default: dry-run)')
+  .option('-t, --threshold <score>', 'Min divergence score for trade', '30')
+  .option('-s, --slippage <bps>', 'Slippage tolerance in bps', '50')
+  .option('--max-usd <usd>', 'Maximum trade size in USD', '100')
+  .option('-c, --category <category>', 'Filter markets by category')
+  .option('-l, --limit <number>', 'Number of markets to scan', '20')
+  .action(async (options) => {
+    await ensureNansen();
+    resetApiCallCount();
+    resetTelemetry();
+    await tradeCommand(options);
+    printTelemetryReceipt();
   });
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
