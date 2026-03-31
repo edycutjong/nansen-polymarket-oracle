@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as fs from 'node:fs';
 import { divergenceEmoji } from '../src/lib/analyzer.js';
 import { enrichAddress } from '../src/lib/enricher.js';
@@ -182,8 +182,8 @@ invalid json
 
 // Command: something without newline`);
       vi.resetModules();
-      let mod = await import('../src/lib/replay.js');
-      let getReplayDataRef = mod.getReplayData;
+      const mod = await import('../src/lib/replay.js');
+      const getReplayDataRef = mod.getReplayData;
 
       expect(getReplayDataRef('exact fallback', [])).toEqual({ success: true });
       expect(getReplayDataRef('base fallback', ['--market-id', '999'])).toEqual({ success: true });

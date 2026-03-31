@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { vi, describe, it, expect, afterEach } from 'vitest';
 import * as nansen from '../src/lib/nansen.js';
 import * as cp from 'node:child_process';
 import * as fs from 'node:fs';
@@ -10,7 +10,7 @@ vi.mock('../src/lib/replay.js', async (importOriginal) => {
   return {
     ...actual,
     get IS_REPLAY() { return mockIsReplay; },
-    getReplayData: vi.fn((cmd, args) => {
+    getReplayData: vi.fn((cmd, _args) => {
       if (cmd === 'error cmd') return null;
       return [{ replayed: true }];
     })
