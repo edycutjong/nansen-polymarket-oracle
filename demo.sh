@@ -30,7 +30,7 @@ case "$MODE" in
     ;;
 esac
 
-clear
+clear || true
 
 # Set terminal window/tab title
 echo -ne "\033]0;🔮 Nansen Polymarket Oracle\007"
@@ -59,7 +59,7 @@ sleep 1
 # ─── 1. Scan ────────────────────────────────────────────────────────
 echo "━━━ 1/4: Scanning Active Markets ━━━"
 echo ""
-nansen-oracle scan --limit 10
+nansen-oracle scan --limit 2
 echo ""
 
 # ─── 2. Analyze ─────────────────────────────────────────────────────
@@ -86,7 +86,12 @@ echo ""
 # ─── 4. Trade ───────────────────────────────────────────────────────
 echo "━━━ 4/4: Autonomous Trade Agent (Proxy Hedge) ━━━"
 echo ""
-nansen-oracle trade --amount 10
+if [ "$MODE" = "replay" ]; then
+  # Replay mode doesn't have trade responses recorded, so force mock for this step
+  NANSEN_REPLAY=false NANSEN_MOCK=true nansen-oracle trade --amount 10
+else
+  nansen-oracle trade --amount 10
+fi
 echo ""
 
 echo "╔═══════════════════════════════════════════════════════════╗"

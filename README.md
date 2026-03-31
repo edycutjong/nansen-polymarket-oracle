@@ -127,7 +127,13 @@ The Oracle natively integrates Nansen's `wallet status`/`wallet create`, `resear
 
 ### Telemetry — Provable API Usage
 <p align="center">
-  <img src="docs/screenshots/telemetry-receipt.png" alt="Telemetry Receipt" width="720" />
+  <img src="docs/screenshots/telemetry-deep.png" alt="Telemetry - Deep Analysis" width="800" />
+  <br/>
+  <em>Every decision is provable. The Oracle tracks and displays every Nansen CLI call made during the analysis session.</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/telemetry-report.png" alt="Telemetry - Full Report" width="800" />
 </p>
 
 ---
