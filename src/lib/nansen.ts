@@ -90,7 +90,11 @@ export function execNansen<T = unknown>(
           resolve({ success: true, data: replay as T });
         } else {
           recordCall({ endpoint: command, method: 'EXEC', latency_ms: latency, status: 'ERROR', cache: 'MISS', role });
-          resolve({ success: false, error: '[REPLAY] No recorded data for: ' + command + ' ' + args.join(' ') });
+          const errMsg = '[REPLAY] No recorded data for: ' + command + ' ' + args.join(' ');
+          if (process.env.NANSEN_DEBUG) {
+            console.error(`\n[DEBUG] ${errMsg}`);
+          }
+          resolve({ success: false, error: errMsg });
         }
       }, 150); // faster than mock — simulates cached lookups
     });
@@ -108,6 +112,10 @@ export function execNansen<T = unknown>(
         if (error) {
           const errorText = stderr || stdout || error.message;
           recordCall({ endpoint: command, method: 'EXEC', latency_ms: latency, status: 'ERROR', cache: 'MISS', role });
+          
+          if (process.env.NANSEN_DEBUG) {
+            console.error(`\n[DEBUG] API Error in ${command}: ${errorText.slice(0, 200)}`);
+          }
           try {
             const parsed = JSON.parse(errorText);
             resolve({
@@ -144,6 +152,9 @@ export function execNansen<T = unknown>(
           resolve(parsed as NansenResponse<T>);
         } catch {
           recordCall({ endpoint: command, method: 'EXEC', latency_ms: latency, status: 'ERROR', cache: 'MISS', role });
+          if (process.env.NANSEN_DEBUG) {
+            console.error(`\n[DEBUG] Parse Error in ${command}: Failed to parse JSON\n${stdout.slice(0, 200)}`);
+          }
           resolve({
             success: false,
             error: `Failed to parse JSON: ${stdout.slice(0, 200)}`,

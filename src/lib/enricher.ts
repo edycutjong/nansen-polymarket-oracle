@@ -124,6 +124,11 @@ export async function enrichHolders(
       }),
     );
     results.push(...enrichedBatch);
+
+    // Hardcode an 800ms sleep between live network requests to bypass strict free tier rate limit
+    if (i + concurrency < holders.length && !process.env.NANSEN_MOCK && !process.env.NANSEN_REPLAY) {
+      await new Promise((res) => setTimeout(res, 800));
+    }
   }
 
   return results;
