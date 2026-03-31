@@ -60,8 +60,8 @@ export async function analyzeCommand(options: AnalyzeOptions): Promise<void> {
   }
 
   // Step 2: Fetch holders
-  const holderSpinner = ora('Fetching top holders...').start();
-  const holdersResult = await fetchTopHolders(marketId, 100);
+  const holderSpinner = ora('Fetching top 5 holders...').start();
+  const holdersResult = await fetchTopHolders(marketId, 5);
 
   if (!holdersResult.success || !holdersResult.data) {
     holderSpinner.fail('Failed to fetch holders');
@@ -75,7 +75,7 @@ export async function analyzeCommand(options: AnalyzeOptions): Promise<void> {
 
   // Step 3: Enrich with SM labels
   const enrichSpinner = ora('Cross-referencing with Smart Money labels...').start();
-  const enrichedHolders = await enrichHolders(holders, chain, 5);
+  const enrichedHolders = await enrichHolders(holders, chain, 1);
   const smHolders = filterSmartMoney(enrichedHolders);
   enrichSpinner.succeed(`Identified ${smHolders.length} Smart Money holders`);
 

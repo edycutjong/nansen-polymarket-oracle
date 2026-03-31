@@ -77,7 +77,7 @@ export async function scanCommand(options: ScanOptions): Promise<MarketAnalysis[
 
     try {
       // Fetch holders for this market
-      const holdersResult = await fetchTopHolders(market.market_id, 50);
+      const holdersResult = await fetchTopHolders(market.market_id, 10);
 
       if (!holdersResult.success || !holdersResult.data) {
         progressSpinner.warn(`Skipped: ${label} (no holder data)`);
@@ -91,8 +91,8 @@ export async function scanCommand(options: ScanOptions): Promise<MarketAnalysis[
         continue;
       }
 
-      // Enrich holders with SM labels
-      const enrichedHolders = await enrichHolders(holders, chain, 3);
+      // Enrich top holder with SM labels to save API credits
+      const enrichedHolders = await enrichHolders(holders, chain, 1);
       const smHolders = filterSmartMoney(enrichedHolders);
 
       // Analyze
