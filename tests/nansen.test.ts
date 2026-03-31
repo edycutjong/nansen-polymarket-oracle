@@ -3,12 +3,21 @@ import * as nansen from '../src/lib/nansen.js';
 import * as cp from 'node:child_process';
 
 let mockIsMock = false;
+let mockIsReplay = false;
 
 vi.mock('../src/lib/mock.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../src/lib/mock.js')>();
   return {
     ...actual,
-    get IS_MOCK() { return mockIsMock; }
+    get IS_MOCK() { return mockIsMock; },
+  };
+});
+
+vi.mock('../src/lib/replay.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/lib/replay.js')>();
+  return {
+    ...actual,
+    get IS_REPLAY() { return mockIsReplay; }
   };
 });
 
@@ -63,12 +72,17 @@ describe('Nansen API wrappers', () => {
         return {} as any;
       });
 
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const prev = (nansen as any).IS_MOCK;
+      const oldDebug = process.env.NANSEN_DEBUG;
       (nansen as any).IS_MOCK = false;
+      process.env.NANSEN_DEBUG = 'true';
 
       const res = await nansen.execNansen('test cmd');
 
       (nansen as any).IS_MOCK = prev;
+      process.env.NANSEN_DEBUG = oldDebug;
+      spy.mockRestore();
 
       expect(res.success).toBe(false);
       expect(res.error).toBe('rate limit');
@@ -149,12 +163,17 @@ describe('Nansen API wrappers', () => {
         return {} as any;
       });
 
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const prev = (nansen as any).IS_MOCK;
+      const oldDebug = process.env.NANSEN_DEBUG;
       (nansen as any).IS_MOCK = false;
+      process.env.NANSEN_DEBUG = 'true';
 
       const res = await nansen.execNansen('test cmd');
 
       (nansen as any).IS_MOCK = prev;
+      process.env.NANSEN_DEBUG = oldDebug;
+      spy.mockRestore();
 
       expect(res.success).toBe(false);
       expect(res.code).toBe('PARSE_ERROR');
@@ -180,6 +199,22 @@ describe('Nansen API wrappers', () => {
       
       expect(res.success).toBe(false);
       expect(res.error).toContain('[MOCK] No data for');
+    });
+
+    it('fails gracefully in replay mode for unknown command', async () => {
+      mockIsReplay = true;
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const oldDebug = process.env.NANSEN_DEBUG;
+      process.env.NANSEN_DEBUG = 'true';
+      
+      const res = await nansen.execNansen('some totally unknown command');
+      
+      mockIsReplay = false;
+      process.env.NANSEN_DEBUG = oldDebug;
+      spy.mockRestore();
+      
+      expect(res.success).toBe(false);
+      expect(res.error).toContain('[REPLAY] No recorded data for');
     });
   });
 

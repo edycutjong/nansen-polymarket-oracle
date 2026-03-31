@@ -209,7 +209,7 @@ describe('Telemetry Module', () => {
       spy.mockRestore();
     });
 
-    it('shows ⚠️ when calls < 10', () => {
+    it('shows WARN when calls < 10', () => {
       const logs: string[] = [];
       const spy = vi.spyOn(console, 'log').mockImplementation((...args: unknown[]) => {
         logs.push(args.join(' '));
@@ -219,24 +219,28 @@ describe('Telemetry Module', () => {
       printTelemetryReceipt();
 
       const allOutput = logs.join('\n');
-      expect(allOutput).toContain('⚠️');
+      expect(allOutput).toContain('WARN');
 
       spy.mockRestore();
     });
 
-    it('shows ✅ when calls >= 10', () => {
+    it('shows PASS when calls >= 10', () => {
       const logs: string[] = [];
       const spy = vi.spyOn(console, 'log').mockImplementation((...args: unknown[]) => {
         logs.push(args.join(' '));
       });
 
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < 8; i++) {
         recordCall({ endpoint: `call-${i}`, method: 'EXEC', latency_ms: 10, status: '200', cache: 'MISS', role: 'Other' });
       }
+      recordCall({ endpoint: 'call-8', method: 'EXEC', latency_ms: 600, status: 'ERROR', cache: 'MISS', role: 'Other' });
+      recordCall({ endpoint: `call-9`, method: 'EXEC', latency_ms: 10, status: '500', cache: 'MISS', role: 'Other' });
+      
       printTelemetryReceipt();
 
       const allOutput = logs.join('\n');
-      expect(allOutput).toContain('✅');
+      expect(allOutput).toContain('PASS');
+      expect(allOutput).toContain('TOTAL: 10 calls');
 
       spy.mockRestore();
     });

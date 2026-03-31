@@ -63,7 +63,7 @@ describe('Analyze Command', () => {
     await analyzeCommand({ marketId: 'm1' });
     
     expect(nansen.fetchMarketScreener).toHaveBeenCalled();
-    expect(nansen.fetchTopHolders).toHaveBeenCalledWith('m1', 100);
+    expect(nansen.fetchTopHolders).toHaveBeenCalledWith('m1', 5);
     // Formatter shouldn't be called if holders fail
     expect(formatter.printMarketDetail).not.toHaveBeenCalled();
   });

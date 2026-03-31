@@ -116,11 +116,9 @@ describe('Trading Module', () => {
       market: {
         market_id: 'test1',
         question: 'Will ETH hit $5k?',
-        volume_usd: 1_000_000,
         category: 'Crypto',
         yes_price: 0.4,
-        outcomes: ['YES', 'NO'],
-        outcome_prices: [0.4, 0.6],
+        volume_usd: 1_000_000,
       },
       divergence_score: 45,
       divergence_level: 'EXTREME',
@@ -182,6 +180,21 @@ describe('Trading Module', () => {
       };
       const signal = mapToHedgeSignal(noCat);
       expect(signal.proxy_chain).toBe('base');
+    });
+
+    it('handles unknown category in mapToHedgeSignal', () => {
+      const mockAnalysis: any = {
+        market: {
+          category: 'UnknownAlienCategory123',
+          question: 'Will aliens visit?',
+        },
+        divergence_score: 50,
+        divergence_level: 2,
+      };
+      const signal = mapToHedgeSignal(mockAnalysis);
+      // proxy falls back to 'default', so proxy is WETH on base
+      expect(signal.proxy_chain).toBe('base');
+      expect(signal.proxy_token).toBe('WETH');
     });
   });
 
